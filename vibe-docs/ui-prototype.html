@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promptory UI Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 메인 레이아웃 */
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* 좌측 사이드바 */
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            max-width: 400px;
+        }
+        
+        .sidebar-section {
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .section-header:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .section-icon {
+            width: 16px;
+            height: 16px;
+            fill: #6b7280;
+        }
+        
+        .collapse-icon {
+            width: 12px;
+            height: 12px;
+            fill: #9ca3af;
+            transition: transform 0.2s;
+        }
+        
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .section-content {
+            padding: 8px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .section-content.collapsed {
+            display: none;
+        }
+        
+        /* 즐겨찾기 목록 */
+        .favorites-list, .folder-tree, .tags-list {
+            list-style: none;
+        }
+        
+        .favorite-item, .folder-item, .tag-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 16px;
+            font-size: 13px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        .favorite-item:hover, .folder-item:hover, .tag-item:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .favorite-item.selected, .folder-item.selected, .tag-item.selected {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .favorite-icon, .folder-icon, .tag-icon {
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            fill: currentColor;
+        }
+        
+        .error-badge {
+            background-color: #fef2f2;
+            color: #dc2626;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        
+        /* 리사이저 */
+        .resizer {
+            width: 4px;
+            background-color: #f1f5f9;
+            cursor: col-resize;
+            position: relative;
+        }
+        
+        .resizer:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .resizer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 8px;
+            height: 100%;
+        }
+        
+        /* 중앙 메인 컨텐츠 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            background-color: #ffffff;
+        }
+        
+        /* 헤더 */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+        }
+        
+        .search-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            fill: #9ca3af;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .action-button:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        
+        .action-button.primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        
+        .action-button.primary:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 프롬프트 카드 그리드 */
+        .prompt-grid-container {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .sort-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .sort-select {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            background-color: #ffffff;
+        }
+        
+        .prompt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .prompt-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .prompt-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+        
+        .prompt-card.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        
+        .prompt-card.error {
+            border-color: #fca5a5;
+            background-color: #fef7f7;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .card-title {
+            font-weight: 500;
+            font-size: 14px;
+            color: #111827;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        
+        .card-icons {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        
+        .card-icon {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .error-icon {
+            fill: #dc2626;
+        }
+        
+        .favorite-icon {
+            fill: #fbbf24;
+        }
+        
+        .card-description {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            flex: 1;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 12px;
+            min-height: 20px;
+        }
+        
+        .tag {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .tag-more {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: auto;
+        }
+        
+        .use-button {
+            padding: 6px 12px;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        .use-button:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 우측 프롬프트 상세 패널 */
+        .prompt-detail {
+            width: 400px;
+            background-color: #ffffff;
+            border-left: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            max-width: 600px;
+        }
+        
+        .detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f8fafc;
+        }
+        
+        .detail-info {
+            flex: 1;
+        }
+        
+        .detail-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        
+        .detail-path {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .detail-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-icon {
+            width: 20px;
+            height: 20px;
+            padding: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        .action-icon:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .favorite-action {
+            fill: #9ca3af;
+        }
+        
+        .favorite-action.active {
+            fill: #fbbf24;
+        }
+        
+        .menu-action {
+            fill: #6b7280;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            min-width: 120px;
+            display: none;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .dropdown-item.danger {
+            color: #dc2626;
+        }
+        
+        .dropdown-item.danger:hover {
+            background-color: #fef2f2;
+        }
+        
+        /* 읽기 전용 메타데이터 */
+        .metadata-readonly {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #ffffff;
+        }
+        
+        .metadata-item {
+            margin-bottom: 12px;
+        }
+        
+        .metadata-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .metadata-value {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.4;
+        }
+        
+        .metadata-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .metadata-tag {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .metadata-favorite {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .favorite-star {
+            width: 14px;
+            height: 14px;
+            fill: #fbbf24;
+        }
+        
+        /* YAML 헤더 폼 (편집 모드) */
+        .yaml-form {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #ffffff;
+        }
+        
+        .form-section {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+        
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-checkbox input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .tags-input-container {
+            position: relative;
+        }
+        
+        .tags-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 32px;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            cursor: text;
+        }
+        
+        .tags-display:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        .tag-item {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            font-size: 13px;
+        }
+        
+        /* 읽기 전용 미리보기 */
+        .preview-readonly {
+            flex: 1;
+            padding: 16px;
+            background-color: #fefefe;
+            overflow-y: auto;
+        }
+        
+        .preview-readonly h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #111827;
+        }
+        
+        .preview-readonly h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+            color: #374151;
+        }
+        
+        .preview-readonly p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            color: #4b5563;
+        }
+        
+        .preview-readonly ul, .preview-readonly ol {
+            margin-bottom: 12px;
+            padding-left: 20px;
+        }
+        
+        .preview-readonly li {
+            margin-bottom: 4px;
+            line-height: 1.5;
+            color: #4b5563;
+        }
+        
+        /* 편집 모드 컨테이너 */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f8fafc;
+        }
+        
+        .editor-title {
+            font-weight: 500;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .editor-tabs {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .editor-tab {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.15s;
+        }
+        
+        .editor-tab.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        
+        .editor-tab:hover:not(.active) {
+            background-color: #f9fafb;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .editor-button {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .editor-button:hover {
+            background-color: #f9fafb;
+        }
+        
+        .editor-button.primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        
+        .editor-button.primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .editor-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-pane.hidden {
+            display: none;
+        }
+        
+        .preview-pane {
+            flex: 1;
+            padding: 16px;
+            background-color: #fefefe;
+            overflow-y: auto;
+        }
+        
+        .preview-pane.hidden {
+            display: none;
+        }
+        
+        .editor-textarea {
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        /* 파라미터 입력 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 90vw;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #111827;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6b7280;
+            margin-left: auto;
+        }
+        
+        .modal-body {
+            flex: 1;
+            display: flex;
+        }
+        
+        .parameter-form {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+        }
+        
+        .parameter-field {
+            margin-bottom: 20px;
+        }
+        
+        .parameter-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .required-marker {
+            color: #dc2626;
+        }
+        
+        .parameter-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .parameter-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .parameter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #ffffff;
+        }
+        
+        .parameter-description {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .modal-settings {
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 20px;
+        }
+        
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 16px;
+        }
+        
+        .preview-title {
+            font-weight: 500;
+            font-size: 16px;
+            color: #111827;
+        }
+        
+        .copy-button {
+            padding: 8px 16px;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        .copy-button:hover {
+            background-color: #2563eb;
+        }
+        
+        .copy-button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .preview-content {
+            flex: 1;
+            background-color: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* 컨텍스트 메뉴 */
+        .context-menu {
+            position: fixed;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+        
+        .context-menu.show {
+            display: block;
+        }
+        
+        .context-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .context-item:last-child {
+            border-bottom: none;
+        }
+        
+        .context-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .context-item.danger {
+            color: #dc2626;
+        }
+        
+        .context-item.danger:hover {
+            background-color: #fef2f2;
+        }
+        
+        .context-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+        
+        /* 확인 다이얼로그 */
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .dialog-content {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 90vw;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .dialog-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .dialog-message {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .dialog-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .dialog-button {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .dialog-button:hover {
+            background-color: #f9fafb;
+        }
+        
+        .dialog-button.primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        
+        .dialog-button.primary:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 숨김 클래스 */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 좌측 사이드바 -->
+        <div class="sidebar">
+            <!-- 즐겨찾기 섹션 -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('favorites')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        즐겨찾기
+                    </div>
+                    <svg class="collapse-icon" viewBox="0 0 12 12">
+                        <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="favorites-content">
+                    <ul class="favorites-list">
+                        <li class="favorite-item selected">
+                            <svg class="favorite-icon" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            코드 리뷰 프롬프트
+                        </li>
+                        <li class="favorite-item">
+                            <svg class="favorite-icon" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            문서 작성 도우미
+                        </li>
+                        <li class="favorite-item">
+                            <svg class="favorite-icon" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            번역 프롬프트
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 폴더 트리 섹션 -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('folders')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                        </svg>
+                        폴더
+                    </div>
+                    <svg class="collapse-icon" viewBox="0 0 12 12">
+                        <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="folders-content">
+                    <ul class="folder-tree">
+                        <li class="folder-item">
+                            <svg class="folder-icon" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                            </svg>
+                            개발
+                            <span class="error-badge">2</span>
+                        </li>
+                        <li class="folder-item">
+                            <svg class="folder-icon" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                            </svg>
+                            연구
+                        </li>
+                        <li class="folder-item">
+                            <svg class="folder-icon" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                            </svg>
+                            개인
+                        </li>
+                        <li class="folder-item">
+                            <svg class="folder-icon" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                            </svg>
+                            비즈니스
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 태그 섹션 -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('tags')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 20 20">
+                            <path d="M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7zM5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2H5z"/>
+                        </svg>
+                        태그
+                    </div>
+                    <svg class="collapse-icon" viewBox="0 0 12 12">
+                        <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="tags-content">
+                    <ul class="tags-list">
+                        <li class="tag-item">
+                            <svg class="tag-icon" viewBox="0 0 20 20">
+                                <path d="M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7z"/>
+                            </svg>
+                            개발 (12)
+                        </li>
+                        <li class="tag-item">
+                            <svg class="tag-icon" viewBox="0 0 20 20">
+                                <path d="M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7z"/>
+                            </svg>
+                            코드리뷰 (8)
+                        </li>
+                        <li class="tag-item">
+                            <svg class="tag-icon" viewBox="0 0 20 20">
+                                <path d="M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7z"/>
+                            </svg>
+                            문서화 (6)
+                        </li>
+                        <li class="tag-item">
+                            <svg class="tag-icon" viewBox="0 0 20 20">
+                                <path d="M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7z"/>
+                            </svg>
+                            번역 (4)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 리사이저 -->
+        <div class="resizer"></div>
+        
+        <!-- 중앙 메인 컨텐츠 -->
+        <div class="main-content">
+            <!-- 헤더 -->
+            <div class="header">
+                <div class="search-container">
+                    <svg class="search-icon" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="프롬프트 검색..." value="">
+                </div>
+                <div class="header-actions">
+                    <button class="action-button">정렬</button>
+                    <button class="action-button primary" onclick="showNewPromptDialog()">새 프롬프트</button>
+                </div>
+            </div>
+            
+            <!-- 프롬프트 그리드 -->
+            <div class="prompt-grid-container">
+                <div class="sort-controls">
+                    <span class="sort-label">정렬:</span>
+                    <select class="sort-select">
+                        <option value="modified">수정일순</option>
+                        <option value="name">이름순</option>
+                        <option value="created">생성일순</option>
+                        <option value="favorite">즐겨찾기 우선</option>
+                    </select>
+                    <select class="sort-select">
+                        <option value="desc">내림차순</option>
+                        <option value="asc">오름차순</option>
+                    </select>
+                </div>
+                
+                <div class="prompt-grid">
+                    <!-- 프롬프트 카드 1 - 선택됨 -->
+                    <div class="prompt-card selected">
+                        <div class="card-header">
+                            <div class="card-title">코드 리뷰 프롬프트</div>
+                            <div class="card-icons">
+                                <svg class="card-icon favorite-icon" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-description">
+                            체계적인 코드 리뷰를 위한 프롬프트 템플릿입니다. 언어별 특성을 고려한 리뷰 가이드라인을 제공합니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">개발</span>
+                            <span class="tag">코드리뷰</span>
+                            <span class="tag">품질</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button" onclick="showParameterModal()">사용</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 프롬프트 카드 2 - 에러 -->
+                    <div class="prompt-card error">
+                        <div class="card-header">
+                            <div class="card-title">문서 작성 도우미</div>
+                            <div class="card-icons">
+                                <svg class="card-icon error-icon" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-description">
+                            기술 문서, 보고서, 블로그 포스트 등 다양한 형태의 문서 작성을 도와주는 프롬프트입니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">문서화</span>
+                            <span class="tag">작성</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button" disabled>오류</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 프롬프트 카드 3 -->
+                    <div class="prompt-card">
+                        <div class="card-header">
+                            <div class="card-title">번역 프롬프트</div>
+                            <div class="card-icons">
+                                <svg class="card-icon favorite-icon" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-description">
+                            자연스러운 번역을 위한 프롬프트입니다. 맥락과 뉘앙스를 고려한 고품질 번역을 제공합니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">번역</span>
+                            <span class="tag">언어</span>
+                            <span class="tag">국제화</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button">사용</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 프롬프트 카드 4 -->
+                    <div class="prompt-card">
+                        <div class="card-header">
+                            <div class="card-title">데이터 분석 프롬프트</div>
+                            <div class="card-icons"></div>
+                        </div>
+                        <div class="card-description">
+                            데이터 분석 및 인사이트 도출을 위한 체계적인 접근 방법을 제공하는 프롬프트입니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">분석</span>
+                            <span class="tag">데이터</span>
+                            <span class="tag">통계</span>
+                            <span class="tag-more">+2</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button">사용</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 프롬프트 카드 5 -->
+                    <div class="prompt-card">
+                        <div class="card-header">
+                            <div class="card-title">창의적 글쓰기 도우미</div>
+                            <div class="card-icons"></div>
+                        </div>
+                        <div class="card-description">
+                            소설, 시나리오, 에세이 등 창의적 글쓰기를 위한 영감과 구조를 제공하는 프롬프트입니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">창작</span>
+                            <span class="tag">글쓰기</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button">사용</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 프롬프트 카드 6 -->
+                    <div class="prompt-card">
+                        <div class="card-header">
+                            <div class="card-title">비즈니스 기획서 작성</div>
+                            <div class="card-icons"></div>
+                        </div>
+                        <div class="card-description">
+                            사업 계획서, 제안서, 마케팅 전략 등 비즈니스 문서 작성을 위한 구조화된 프롬프트입니다.
+                        </div>
+                        <div class="card-tags">
+                            <span class="tag">비즈니스</span>
+                            <span class="tag">기획</span>
+                            <span class="tag">전략</span>
+                        </div>
+                        <div class="card-footer">
+                            <button class="use-button">사용</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 리사이저 -->
+        <div class="resizer"></div>
+        
+        <!-- 우측 프롬프트 상세 패널 -->
+        <div class="prompt-detail">
+            <!-- 상세 헤더 -->
+            <div class="detail-header">
+                <div class="detail-info">
+                    <div class="detail-title">코드 리뷰 프롬프트</div>
+                    <div class="detail-path">개발/code-review.md</div>
+                </div>
+                <div class="detail-actions">
+                    <svg class="action-icon favorite-action active" viewBox="0 0 20 20" onclick="toggleFavorite()">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    <div class="menu-action-container" style="position: relative;">
+                        <svg class="action-icon menu-action" viewBox="0 0 20 20" onclick="toggleDropdown()">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                        </svg>
+                        <div class="dropdown-menu" id="action-dropdown">
+                            <div class="dropdown-item" onclick="editPrompt()">편집</div>
+                            <div class="dropdown-item" onclick="duplicatePrompt()">복제</div>
+                            <div class="dropdown-item danger" onclick="deletePrompt()">삭제</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 읽기 전용 메타데이터 (기본 모드) -->
+            <div class="metadata-readonly" id="metadata-readonly">
+                <div class="metadata-item">
+                    <div class="metadata-label">설명</div>
+                    <div class="metadata-value">체계적인 코드 리뷰를 위한 프롬프트 템플릿입니다. 언어별 특성을 고려한 리뷰 가이드라인을 제공합니다.</div>
+                </div>
+                
+                <div class="metadata-item">
+                    <div class="metadata-label">태그</div>
+                    <div class="metadata-tags">
+                        <span class="metadata-tag">개발</span>
+                        <span class="metadata-tag">코드리뷰</span>
+                        <span class="metadata-tag">품질</span>
+                    </div>
+                </div>
+                
+                <div class="metadata-item">
+                    <div class="metadata-label">즐겨찾기</div>
+                    <div class="metadata-favorite">
+                        <svg class="favorite-star" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <span>즐겨찾기</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 읽기 전용 미리보기 (기본 모드) -->
+            <div class="preview-readonly" id="preview-readonly">
+                <h1>Python 코드 리뷰 프롬프트</h1>
+                <p>다음 Python 코드를 리뷰해주세요.</p>
+                <p>성능 최적화에 특히 집중하여 검토해주세요.</p>
+                <h2>검토 항목</h2>
+                <ul>
+                    <li>코드 품질 및 가독성</li>
+                    <li>성능 최적화 가능성</li>
+                    <li>보안 취약점</li>
+                    <li>모범 사례 준수</li>
+                    <li>테스트 커버리지</li>
+                </ul>
+                <h2>출력 형식</h2>
+                <ol>
+                    <li><strong>전반적인 평가</strong></li>
+                    <li><strong>구체적인 개선 사항</strong></li>
+                    <li><strong>권장 사항</strong></li>
+                </ol>
+            </div>
+            
+            <!-- YAML 헤더 폼 (편집 모드) -->
+            <div class="yaml-form hidden" id="yaml-form">
+                <div class="form-section">
+                    <label class="form-label">제목</label>
+                    <input type="text" class="form-input" value="코드 리뷰 프롬프트">
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">설명</label>
+                    <textarea class="form-input form-textarea" placeholder="프롬프트에 대한 설명을 입력하세요...">체계적인 코드 리뷰를 위한 프롬프트 템플릿입니다. 언어별 특성을 고려한 리뷰 가이드라인을 제공합니다.</textarea>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">태그</label>
+                    <div class="tags-input-container">
+                        <div class="tags-display">
+                            <div class="tag-item">
+                                개발
+                                <span class="tag-remove" onclick="removeTag(this)">×</span>
+                            </div>
+                            <div class="tag-item">
+                                코드리뷰
+                                <span class="tag-remove" onclick="removeTag(this)">×</span>
+                            </div>
+                            <div class="tag-item">
+                                품질
+                                <span class="tag-remove" onclick="removeTag(this)">×</span>
+                            </div>
+                            <input type="text" class="tag-input" placeholder="태그 입력...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="favorite" checked>
+                        <label for="favorite" class="form-label">즐겨찾기</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 마크다운 에디터 (편집 모드) -->
+            <div class="editor-container hidden" id="editor-container">
+                <div class="editor-header">
+                    <div class="editor-title">내용 편집</div>
+                    <div class="editor-tabs">
+                        <button class="editor-tab active" onclick="switchTab('edit')">편집</button>
+                        <button class="editor-tab" onclick="switchTab('preview')">미리보기</button>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="editor-button" onclick="cancelEdit()">취소</button>
+                        <button class="editor-button primary" onclick="savePrompt()">저장</button>
+                    </div>
+                </div>
+                
+                <div class="editor-content">
+                    <div class="editor-pane" id="edit-pane">
+                        <textarea class="editor-textarea" placeholder="마크다운 내용을 입력하세요..."># {language} 코드 리뷰 프롬프트
+
+다음 {language} 코드를 리뷰해주세요.
+
+{focus_area}에 특히 집중하여 검토해주세요.
+
+## 검토 항목
+- 코드 품질 및 가독성
+- 성능 최적화 가능성
+- 보안 취약점
+- 모범 사례 준수
+- 테스트 커버리지
+
+## 출력 형식
+1. **전반적인 평가**
+2. **구체적인 개선 사항**
+3. **권장 사항**</textarea>
+                    </div>
+                    <div class="preview-pane hidden" id="edit-preview-pane">
+                        <h1>{language} 코드 리뷰 프롬프트</h1>
+                        <p>다음 {language} 코드를 리뷰해주세요.</p>
+                        <p>{focus_area}에 특히 집중하여 검토해주세요.</p>
+                        <h2>검토 항목</h2>
+                        <ul>
+                            <li>코드 품질 및 가독성</li>
+                            <li>성능 최적화 가능성</li>
+                            <li>보안 취약점</li>
+                            <li>모범 사례 준수</li>
+                            <li>테스트 커버리지</li>
+                        </ul>
+                        <h2>출력 형식</h2>
+                        <ol>
+                            <li><strong>전반적인 평가</strong></li>
+                            <li><strong>구체적인 개선 사항</strong></li>
+                            <li><strong>권장 사항</strong></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 컨텍스트 메뉴 -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-item" onclick="toggleFavoriteFromContext()">
+            <svg class="context-icon" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            즐겨찾기 추가
+        </div>
+        <div class="context-item" onclick="editPromptFromContext()">
+            <svg class="context-icon" viewBox="0 0 20 20">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+            편집
+        </div>
+        <div class="context-item" onclick="duplicatePromptFromContext()">
+            <svg class="context-icon" viewBox="0 0 20 20">
+                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+            </svg>
+            복제
+        </div>
+        <div class="context-item danger" onclick="deletePromptFromContext()">
+            <svg class="context-icon" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            삭제
+        </div>
+    </div>
+    
+    <!-- 확인 다이얼로그 (3개 옵션) -->
+    <div class="dialog-overlay hidden" id="confirm-dialog">
+        <div class="dialog-content">
+            <div class="dialog-title" id="dialog-title">변경사항을 저장하시겠습니까?</div>
+            <div class="dialog-message" id="dialog-message">편집 중인 내용이 있습니다. 저장하지 않고 계속하면 변경사항이 손실됩니다.</div>
+            <div class="dialog-actions">
+                <button class="dialog-button" onclick="cancelDialog()">취소</button>
+                <button class="dialog-button" onclick="dontSaveDialog()">저장하지 않음</button>
+                <button class="dialog-button primary" onclick="saveDialog()">저장</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 파라미터 입력 모달 -->
+    <div class="modal-overlay hidden" id="parameter-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">프롬프트 사용</div>
+                <button class="modal-close" onclick="hideParameterModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- 파라미터 입력 폼 -->
+                <div class="parameter-form">
+                    <div class="parameter-field">
+                        <div class="parameter-label">
+                            language
+                            <span class="required-marker">*</span>
+                        </div>
+                        <select class="parameter-select">
+                            <option value="">선택하세요</option>
+                            <option value="Python">Python</option>
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="Java">Java</option>
+                            <option value="Go">Go</option>
+                            <option value="TypeScript">TypeScript</option>
+                        </select>
+                        <div class="parameter-description">리뷰할 코드의 프로그래밍 언어</div>
+                    </div>
+                    
+                    <div class="parameter-field">
+                        <div class="parameter-label">focus_area</div>
+                        <textarea class="parameter-input parameter-textarea" placeholder="집중할 리뷰 영역을 입력하세요..."></textarea>
+                        <div class="parameter-description">특별히 집중해서 리뷰할 영역 (선택사항)</div>
+                    </div>
+                    
+                    <div class="modal-settings">
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="auto-close" checked>
+                            <label for="auto-close">복사 후 자동으로 닫기</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 미리보기 패널 -->
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <div class="preview-title">미리보기</div>
+                        <button class="copy-button" onclick="copyToClipboard()">복사 (⌘⇧C)</button>
+                    </div>
+                    
+                    <div class="preview-content" id="preview-content"># 코드 리뷰 프롬프트
+
+다음 코드를 리뷰해주세요.
+
+에 특히 집중하여 검토해주세요.
+
+## 검토 항목
+- 코드 품질 및 가독성
+- 성능 최적화 가능성
+- 보안 취약점
+- 모범 사례 준수
+- 테스트 커버리지
+
+## 출력 형식
+1. **전반적인 평가**
+2. **구체적인 개선 사항**
+3. **권장 사항**</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 섹션 토글 기능
+        function toggleSection(sectionName) {
+            const content = document.getElementById(sectionName + '-content');
+            const icon = event.currentTarget.querySelector('.collapse-icon');
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.add('collapsed');
+            }
+        }
+        
+        // 태그 제거 기능
+        function removeTag(element) {
+            element.parentElement.remove();
+        }
+        
+        // 파라미터 모달 표시
+        function showParameterModal() {
+            document.getElementById('parameter-modal').classList.remove('hidden');
+        }
+        
+        // 파라미터 모달 숨김
+        function hideParameterModal() {
+            document.getElementById('parameter-modal').classList.add('hidden');
+        }
+        
+        // 클립보드 복사
+        function copyToClipboard() {
+            const content = document.getElementById('preview-content').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                // 복사 성공 피드백 (실제로는 토스트 알림)
+                alert('클립보드에 복사되었습니다!');
+                
+                // 자동 닫기 설정이 활성화되어 있으면 모달 닫기
+                if (document.getElementById('auto-close').checked) {
+                    hideParameterModal();
+                }
+            });
+        }
+        
+        // 새 프롬프트 다이얼로그
+        function showNewPromptDialog() {
+            alert('새 프롬프트 생성 기능 (구현 예정)');
+        }
+        
+        // 실시간 미리보기 업데이트 (예시)
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageSelect = document.querySelector('.parameter-select');
+            const focusAreaInput = document.querySelector('.parameter-textarea');
+            const previewContent = document.getElementById('preview-content');
+            
+            function updatePreview() {
+                const language = languageSelect.value || '{language}';
+                const focusArea = focusAreaInput.value || '{focus_area}';
+                
+                let content = `# ${language} 코드 리뷰 프롬프트
+
+다음 ${language} 코드를 리뷰해주세요.
+
+${focusArea}에 특히 집중하여 검토해주세요.
+
+## 검토 항목
+- 코드 품질 및 가독성
+- 성능 최적화 가능성
+- 보안 취약점
+- 모범 사례 준수
+- 테스트 커버리지
+
+## 출력 형식
+1. **전반적인 평가**
+2. **구체적인 개선 사항**
+3. **권장 사항**`;
+                
+                previewContent.textContent = content;
+            }
+            
+            languageSelect.addEventListener('change', updatePreview);
+            focusAreaInput.addEventListener('input', updatePreview);
+            
+            // 초기 미리보기 업데이트
+            updatePreview();
+        });
+        
+        // 상태 관리 변수
+        let isEditing = false;
+        let hasUnsavedChanges = false;
+        let currentEditTab = 'edit';
+        
+        // 즐겨찾기 토글
+        function toggleFavorite() {
+            const favoriteIcon = document.querySelector('.favorite-action');
+            favoriteIcon.classList.toggle('active');
+        }
+        
+        // 드롭다운 메뉴 토글
+        function toggleDropdown() {
+            const dropdown = document.getElementById('action-dropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // 편집 모드 전환
+        function editPrompt() {
+            if (hasUnsavedChanges) {
+                showConfirmDialog(
+                    '변경사항을 저장하시겠습니까?', 
+                    '편집 중인 내용이 있습니다. 저장하지 않고 계속하면 변경사항이 손실됩니다.',
+                    () => {
+                        // 저장 후 편집 모드 진입
+                        savePrompt();
+                        enterEditMode();
+                    },
+                    () => {
+                        // 저장하지 않고 편집 모드 진입
+                        hasUnsavedChanges = false;
+                        enterEditMode();
+                    }
+                );
+                return;
+            }
+            enterEditMode();
+        }
+        
+        function enterEditMode() {
+            isEditing = true;
+            
+            // 읽기 전용 요소 숨기기
+            document.getElementById('metadata-readonly').classList.add('hidden');
+            document.getElementById('preview-readonly').classList.add('hidden');
+            
+            // 편집 요소 표시
+            document.getElementById('yaml-form').classList.remove('hidden');
+            document.getElementById('editor-container').classList.remove('hidden');
+            
+            // 편집 탭을 기본으로 설정
+            switchTab('edit');
+            
+            // 드롭다운 닫기
+            document.getElementById('action-dropdown').classList.remove('show');
+        }
+        
+        // 편집 취소
+        function cancelEdit() {
+            if (hasUnsavedChanges) {
+                showConfirmDialog(
+                    '변경사항을 저장하시겠습니까?', 
+                    '편집 중인 내용이 있습니다. 저장하지 않고 계속하면 변경사항이 손실됩니다.',
+                    () => {
+                        // 저장 후 편집 모드 종료
+                        savePrompt();
+                        exitEditMode();
+                    },
+                    () => {
+                        // 저장하지 않고 편집 모드 종료
+                        hasUnsavedChanges = false;
+                        exitEditMode();
+                    }
+                );
+                return;
+            }
+            exitEditMode();
+        }
+        
+        function exitEditMode() {
+            isEditing = false;
+            hasUnsavedChanges = false;
+            
+            // 편집 요소 숨기기
+            document.getElementById('yaml-form').classList.add('hidden');
+            document.getElementById('editor-container').classList.add('hidden');
+            
+            // 읽기 전용 요소 표시
+            document.getElementById('metadata-readonly').classList.remove('hidden');
+            document.getElementById('preview-readonly').classList.remove('hidden');
+        }
+        
+        // 편집 탭 전환
+        function switchTab(tab) {
+            currentEditTab = tab;
+            
+            // 탭 버튼 상태 업데이트
+            document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            // 패널 표시/숨김
+            if (tab === 'edit') {
+                document.getElementById('edit-pane').classList.remove('hidden');
+                document.getElementById('edit-preview-pane').classList.add('hidden');
+            } else {
+                document.getElementById('edit-pane').classList.add('hidden');
+                document.getElementById('edit-preview-pane').classList.remove('hidden');
+            }
+        }
+        
+        // 프롬프트 저장
+        function savePrompt() {
+            // 실제로는 IPC를 통해 파일 저장
+            console.log('프롬프트 저장 중...');
+            hasUnsavedChanges = false;
+            
+            // 성공 피드백
+            alert('저장되었습니다!');
+        }
+        
+        // 프롬프트 복제
+        function duplicatePrompt() {
+            alert('프롬프트 복제 기능 (구현 예정)');
+            document.getElementById('action-dropdown').classList.remove('show');
+        }
+        
+        // 프롬프트 삭제
+        function deletePrompt() {
+            if (confirm('정말로 이 프롬프트를 삭제하시겠습니까?')) {
+                alert('프롬프트 삭제 기능 (구현 예정)');
+            }
+            document.getElementById('action-dropdown').classList.remove('show');
+        }
+        
+        // 컨텍스트 메뉴 표시
+        function showContextMenu(event, cardElement) {
+            event.preventDefault();
+            const contextMenu = document.getElementById('context-menu');
+            
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+            contextMenu.classList.add('show');
+            
+            // 현재 선택된 카드 저장
+            document.querySelectorAll('.prompt-card').forEach(card => card.classList.remove('selected'));
+            cardElement.classList.add('selected');
+        }
+        
+        // 컨텍스트 메뉴에서 즐겨찾기 토글
+        function toggleFavoriteFromContext() {
+            toggleFavorite();
+            hideContextMenu();
+        }
+        
+        // 컨텍스트 메뉴에서 편집
+        function editPromptFromContext() {
+            editPrompt();
+            hideContextMenu();
+        }
+        
+        // 컨텍스트 메뉴에서 복제
+        function duplicatePromptFromContext() {
+            duplicatePrompt();
+            hideContextMenu();
+        }
+        
+        // 컨텍스트 메뉴에서 삭제
+        function deletePromptFromContext() {
+            deletePrompt();
+            hideContextMenu();
+        }
+        
+        // 컨텍스트 메뉴 숨김
+        function hideContextMenu() {
+            document.getElementById('context-menu').classList.remove('show');
+        }
+        
+        // 확인 다이얼로그 표시 (3개 옵션)
+        function showConfirmDialog(title, message, onSave, onDontSave) {
+            document.getElementById('dialog-title').textContent = title;
+            document.getElementById('dialog-message').textContent = message;
+            document.getElementById('confirm-dialog').classList.remove('hidden');
+            
+            // 콜백 저장
+            window.saveCallback = onSave;
+            window.dontSaveCallback = onDontSave;
+        }
+        
+        // 다이얼로그 - 저장
+        function saveDialog() {
+            if (window.saveCallback) {
+                window.saveCallback();
+                window.saveCallback = null;
+                window.dontSaveCallback = null;
+            }
+            document.getElementById('confirm-dialog').classList.add('hidden');
+        }
+        
+        // 다이얼로그 - 저장하지 않음
+        function dontSaveDialog() {
+            if (window.dontSaveCallback) {
+                window.dontSaveCallback();
+                window.saveCallback = null;
+                window.dontSaveCallback = null;
+            }
+            document.getElementById('confirm-dialog').classList.add('hidden');
+        }
+        
+        // 다이얼로그 - 취소
+        function cancelDialog() {
+            window.saveCallback = null;
+            window.dontSaveCallback = null;
+            document.getElementById('confirm-dialog').classList.add('hidden');
+        }
+        
+        // 카드 선택
+        function selectCard(cardElement) {
+            document.querySelectorAll('.prompt-card').forEach(card => card.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            
+            // 편집 모드에서 나가기
+            if (isEditing) {
+                exitEditMode();
+            }
+        }
+        
+        // 전역 이벤트 리스너 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            // 전역 클릭 이벤트로 드롭다운/컨텍스트 메뉴 닫기
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.menu-action-container')) {
+                    document.getElementById('action-dropdown').classList.remove('show');
+                }
+                
+                if (!event.target.closest('.context-menu')) {
+                    hideContextMenu();
+                }
+            });
+            
+            // 프롬프트 카드에 우클릭 이벤트 추가
+            document.querySelectorAll('.prompt-card').forEach(card => {
+                card.addEventListener('contextmenu', function(event) {
+                    showContextMenu(event, this);
+                });
+                
+                // 좌클릭으로 선택
+                card.addEventListener('click', function() {
+                    if (isEditing && hasUnsavedChanges) {
+                        showConfirmDialog(
+                            '변경사항을 저장하시겠습니까?', 
+                            '편집 중인 내용이 있습니다. 저장하지 않고 계속하면 변경사항이 손실됩니다.',
+                            () => {
+                                // 저장 후 카드 선택
+                                savePrompt();
+                                selectCard(this);
+                            },
+                            () => {
+                                // 저장하지 않고 카드 선택
+                                hasUnsavedChanges = false;
+                                selectCard(this);
+                            }
+                        );
+                        return;
+                    }
+                    selectCard(this);
+                });
+            });
+            
+            // 편집기 내용 변경 감지
+            const editorTextarea = document.querySelector('.editor-textarea');
+            if (editorTextarea) {
+                editorTextarea.addEventListener('input', function() {
+                    hasUnsavedChanges = true;
+                });
+            }
+            
+            // 폼 입력 변경 감지
+            document.querySelectorAll('#yaml-form input, #yaml-form textarea').forEach(input => {
+                input.addEventListener('input', function() {
+                    hasUnsavedChanges = true;
+                });
+            });
+        });
+        
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('parameter-modal');
+                if (!modal.classList.contains('hidden')) {
+                    hideParameterModal();
+                }
+            }
+        });
+        
+        // 키보드 단축키
+        document.addEventListener('keydown', function(event) {
+            if (event.metaKey || event.ctrlKey) {
+                switch(event.key) {
+                    case 'n':
+                        event.preventDefault();
+                        showNewPromptDialog();
+                        break;
+                    case 'f':
+                        event.preventDefault();
+                        document.querySelector('.search-input').focus();
+                        break;
+                    case 'u':
+                        event.preventDefault();
+                        showParameterModal();
+                        break;
+                    case 'd':
+                        event.preventDefault();
+                        toggleFavorite();
+                        break;
+                    case 's':
+                        if (isEditing) {
+                            event.preventDefault();
+                            savePrompt();
+                        }
+                        break;
+                }
+            }
+            
+            // Cmd+Shift+C for copy in modal
+            if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'C') {
+                const modal = document.getElementById('parameter-modal');
+                if (!modal.classList.contains('hidden')) {
+                    event.preventDefault();
+                    copyToClipboard();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

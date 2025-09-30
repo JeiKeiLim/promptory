@@ -1,0 +1,108 @@
+/**
+ * 설정 모달 컴포넌트
+ */
+
+import React, { useEffect } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useAppStore } from '@renderer/stores/useAppStore';
+import { GeneralSettings } from './GeneralSettings';
+import { EditorSettings } from './EditorSettings';
+import { SearchSettings } from './SearchSettings';
+import { ShortcutSettings } from './ShortcutSettings';
+import { WindowSettings } from './WindowSettings';
+
+export const SettingsModal: React.FC = () => {
+  const { settingsModal, hideSettingsModal, setSettingsTab } = useAppStore();
+
+  if (!settingsModal.isOpen) return null;
+
+  const tabs = [
+    { id: 'general', label: '일반', icon: '⚙️' },
+    { id: 'editor', label: '에디터', icon: '📝' },
+    { id: 'search', label: '검색', icon: '🔍' },
+    { id: 'shortcuts', label: '단축키', icon: '⌨️' },
+    { id: 'window', label: '윈도우', icon: '🖥️' }
+  ] as const;
+
+  const renderTabContent = () => {
+    switch (settingsModal.activeTab) {
+      case 'general':
+        return <GeneralSettings />;
+      case 'editor':
+        return <EditorSettings />;
+      case 'search':
+        return <SearchSettings />;
+      case 'shortcuts':
+        return <ShortcutSettings />;
+      case 'window':
+        return <WindowSettings />;
+      default:
+        return <GeneralSettings />;
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 flex items-center justify-center z-50 modal-backdrop bg-black bg-opacity-50"
+      onClick={(e) => {
+        // 배경 클릭 시 모달 닫기
+        if (e.target === e.currentTarget) {
+          hideSettingsModal();
+        }
+      }}
+    >
+      <div className="bg-white border border-gray-200 rounded-lg w-full max-w-4xl h-[600px] flex overflow-hidden modal-content shadow-xl">
+        {/* 사이드바 */}
+        <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+          {/* 헤더 */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">
+                설정
+              </h2>
+              <button
+                onClick={hideSettingsModal}
+                className="p-1 text-gray-500 rounded-md hover:bg-gray-100 hover:text-gray-700"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* 탭 목록 */}
+          <div className="flex-1 p-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSettingsTab(tab.id)}
+                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-left transition-colors ${
+                  settingsModal.activeTab === tab.id
+                    ? 'bg-blue-100 text-blue-600 font-medium'
+                    : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <span className="text-lg">{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 메인 콘텐츠 */}
+        <div className="flex-1 flex flex-col bg-white">
+          {/* 콘텐츠 헤더 */}
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {tabs.find(tab => tab.id === settingsModal.activeTab)?.label}
+            </h3>
+          </div>
+
+          {/* 콘텐츠 영역 */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {renderTabContent()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
