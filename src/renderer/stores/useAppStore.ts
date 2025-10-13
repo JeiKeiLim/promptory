@@ -9,25 +9,19 @@ import { persist } from 'zustand/middleware';
 export interface AppSettings {
   // 일반 설정
   language: 'ko' | 'en' | 'ja';
-  fontSize: number;
   autoCloseModal: boolean;
-  autoSave: boolean;
-  autoSaveInterval: number; // 초 단위
   projectPath: string; // 프롬프트 저장 위치
   
   // 에디터 설정
   editor: {
     wordWrap: boolean;
     showLineNumbers: boolean;
-    tabSize: 2 | 4 | 8;
-    fontFamily: string;
   };
   
   // 검색 설정
   search: {
     maxResults: number;
     highlightMatches: boolean;
-    caseSensitive: boolean;
     searchScope: {
       title: boolean;
       tags: boolean;
@@ -73,6 +67,7 @@ export interface ConfirmDialogState {
   message: string;
   onSave: (() => void) | null;
   onDontSave: (() => void) | null;
+  onCancel: (() => void) | null;
   saveButtonText?: string;
   dontSaveButtonText?: string;
   cancelButtonText?: string;
@@ -121,6 +116,7 @@ export interface AppStore {
     message: string,
     onSave: () => void,
     onDontSave: () => void,
+    onCancel: () => void,
     options?: {
       saveButtonText?: string;
       dontSaveButtonText?: string;
@@ -142,23 +138,17 @@ export interface AppStore {
 // 기본값
 const defaultSettings: AppSettings = {
   language: 'ko',
-  fontSize: 14,
   autoCloseModal: true,
-  autoSave: true,
-  autoSaveInterval: 30,
   projectPath: '', // 빈 문자열이면 기본 경로 사용
   
   editor: {
     wordWrap: true,
-    showLineNumbers: false,
-    tabSize: 2,
-    fontFamily: "Monaco, 'Cascadia Code', 'Fira Code', monospace"
+    showLineNumbers: false
   },
   
   search: {
     maxResults: 100,
     highlightMatches: true,
-    caseSensitive: false,
     searchScope: {
       title: true,
       tags: true,
@@ -213,7 +203,8 @@ export const useAppStore = create<AppStore>()(
         title: '',
         message: '',
         onSave: null,
-        onDontSave: null
+        onDontSave: null,
+        onCancel: null
       },
       
       settingsModal: {
@@ -269,7 +260,7 @@ export const useAppStore = create<AppStore>()(
         });
       },
       
-      showConfirmDialog: (title, message, onSave, onDontSave, options) => {
+      showConfirmDialog: (title, message, onSave, onDontSave, onCancel, options) => {
         set({
           confirmDialog: {
             isOpen: true,
@@ -277,6 +268,7 @@ export const useAppStore = create<AppStore>()(
             message,
             onSave,
             onDontSave,
+            onCancel,
             saveButtonText: options?.saveButtonText,
             dontSaveButtonText: options?.dontSaveButtonText,
             cancelButtonText: options?.cancelButtonText
@@ -286,12 +278,13 @@ export const useAppStore = create<AppStore>()(
       
       hideConfirmDialog: () => {
         set({
-          confirmDialog: {
-            isOpen: false,
-            title: '',
-            message: '',
-            onSave: null,
-            onDontSave: null,
+      confirmDialog: {
+        isOpen: false,
+        title: '',
+        message: '',
+        onSave: null,
+        onDontSave: null,
+        onCancel: null,
             saveButtonText: undefined,
             dontSaveButtonText: undefined,
             cancelButtonText: undefined

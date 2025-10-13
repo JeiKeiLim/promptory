@@ -8,8 +8,10 @@ import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { InputDialog } from '@renderer/components/common/InputDialog';
+import { useTranslation } from 'react-i18next';
 
 export const Sidebar: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     prompts, 
     favorites, 
@@ -33,18 +35,18 @@ export const Sidebar: React.FC = () => {
       const result = await window.electronAPI.invoke('folder:create', folderName);
       
       if (result.success) {
-        toast.success(`폴더 "${folderName}"가 생성되었습니다.`);
+        toast.success(t('toast.folderCreated'));
         setShowFolderDialog(false);
         // 폴더 목록 새로고침
         await loadFolders();
         // 프롬프트 데이터도 새로고침
         await refreshData();
       } else {
-        toast.error(`폴더 생성 실패: ${result.error?.message || '알 수 없는 오류'}`);
+        toast.error(`${t('toast.error')}: ${result.error?.message || ''}`);
       }
     } catch (error) {
       console.error('Failed to create folder:', error);
-      toast.error('폴더 생성 중 오류가 발생했습니다.');
+      toast.error(t('toast.error'));
     }
   };
 
@@ -93,11 +95,11 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="h-full flex flex-col theme-bg-secondary">
       <div className="p-4 border-b theme-border-primary flex items-center justify-between">
-        <h1 className="text-lg font-semibold theme-text-primary">Promptory</h1>
+        <h1 className="text-lg font-semibold theme-text-primary">{t('sidebar.title')}</h1>
         <button
           onClick={() => showSettingsModal()}
           className="p-1.5 theme-text-secondary theme-hover rounded-md transition-colors"
-          title="설정"
+          title={t('settings.title')}
         >
           <Cog6ToothIcon className="w-5 h-5" />
         </button>
@@ -115,7 +117,7 @@ export const Sidebar: React.FC = () => {
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              📁 전체 프롬프트 ({prompts.length})
+              📁 {t('app.name')} ({prompts.length})
             </button>
           </div>
 
@@ -125,7 +127,7 @@ export const Sidebar: React.FC = () => {
               onClick={() => toggleSection('favorites')}
               className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-2"
             >
-              <span>⭐ 즐겨찾기</span>
+              <span>⭐ {t('sidebar.favorites')}</span>
               <span>{collapsedSections.favorites ? '▶' : '▼'}</span>
             </button>
             
@@ -139,7 +141,7 @@ export const Sidebar: React.FC = () => {
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  즐겨찾기 ({favorites.length})
+                  {t('sidebar.favorites')} ({favorites.length})
                 </button>
               </div>
             )}
@@ -152,7 +154,7 @@ export const Sidebar: React.FC = () => {
                 onClick={() => toggleSection('folders')}
                 className="flex items-center space-x-2 text-sm font-medium text-gray-700"
               >
-                <span>📂 폴더</span>
+                <span>📂 {t('sidebar.folders')}</span>
                 <span>{collapsedSections.folders ? '▶' : '▼'}</span>
               </button>
               {!collapsedSections.folders && (
@@ -163,7 +165,7 @@ export const Sidebar: React.FC = () => {
                     setShowFolderDialog(true);
                   }}
                   className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
-                  title="새 폴더 추가"
+                  title={t('sidebar.newFolder')}
                 >
                   <span className="text-lg leading-none">+</span>
                 </button>
@@ -173,7 +175,7 @@ export const Sidebar: React.FC = () => {
             {!collapsedSections.folders && (
               <div className="space-y-1">
                 {folders.length === 0 ? (
-                  <div className="text-sm text-gray-500 px-3">폴더가 없습니다.</div>
+                  <div className="text-sm text-gray-500 px-3">{t('sidebar.noFolders')}</div>
                 ) : (
                   folders.map((folder) => (
                     <button
@@ -199,14 +201,14 @@ export const Sidebar: React.FC = () => {
               onClick={() => toggleSection('tags')}
               className="flex items-center justify-between w-full text-sm font-medium text-gray-700 mb-2"
             >
-              <span>🏷️ 태그</span>
+              <span>🏷️ {t('sidebar.tags')}</span>
               <span>{collapsedSections.tags ? '▶' : '▼'}</span>
             </button>
             
             {!collapsedSections.tags && (
               <div className="space-y-1">
                 {tagStats.length === 0 ? (
-                  <div className="text-sm text-gray-500 px-3">태그가 없습니다.</div>
+                  <div className="text-sm text-gray-500 px-3">{t('sidebar.noTags')}</div>
                 ) : (
                   <>
                     {/* 표시할 태그 목록 */}
@@ -232,11 +234,11 @@ export const Sidebar: React.FC = () => {
                       >
                         {showAllTags ? (
                           <>
-                            ▲ 접기 ({tagStats.length - 10}개 숨기기)
+                            ▲ {t('sidebar.showLess')} ({tagStats.length - 10}{t('sidebar.hiddenCount')})
                           </>
                         ) : (
                           <>
-                            ▼ 더 보기 (+{tagStats.length - 10}개)
+                            ▼ {t('sidebar.showMore')} (+{tagStats.length - 10}{t('sidebar.moreCount')})
                           </>
                         )}
                       </button>
@@ -252,9 +254,9 @@ export const Sidebar: React.FC = () => {
       {/* 폴더 추가 다이얼로그 */}
       <InputDialog
         isOpen={showFolderDialog}
-        title="새 폴더 추가"
-        message="생성할 폴더 이름을 입력하세요"
-        placeholder="폴더 이름"
+        title={t('sidebar.newFolderTitle')}
+        message={t('sidebar.newFolderMessage')}
+        placeholder={t('sidebar.folderNamePlaceholder')}
         onConfirm={handleCreateFolder}
         onCancel={() => setShowFolderDialog(false)}
       />

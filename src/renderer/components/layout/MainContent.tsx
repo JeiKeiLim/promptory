@@ -7,8 +7,10 @@ import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { SearchBar } from '@renderer/components/search/SearchBar';
+import { useTranslation } from 'react-i18next';
 
 export const MainContent: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     prompts, 
     getFilteredPrompts, 
@@ -19,7 +21,7 @@ export const MainContent: React.FC = () => {
     error 
   } = usePromptStore();
 
-  const { setEditingPrompt } = useAppStore();
+  const { setEditingPrompt, settings } = useAppStore();
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,9 +29,10 @@ export const MainContent: React.FC = () => {
   // 검색이 활성화되어 있으면 검색 결과를, 아니면 필터된 프롬프트를 사용
   const displayPrompts = isSearchActive ? searchResults : getFilteredPrompts();
 
-  // 검색 키워드 하이라이트 함수
+  // 검색 키워드 하이라이트 함수 (설정값 적용)
   const highlightMatch = useCallback((text: string, query: string) => {
-    if (!query || !isSearchActive) return text;
+    const highlightEnabled = settings.search?.highlightMatches !== false;
+    if (!query || !isSearchActive || !highlightEnabled) return text;
     
     const regex = new RegExp(`(${query})`, 'gi');
     const parts = text.split(regex);
@@ -41,7 +44,7 @@ export const MainContent: React.FC = () => {
         </mark>
       ) : part
     );
-  }, [isSearchActive]);
+  }, [isSearchActive, settings.search]);
 
   // 검색 결과 콜백 함수 메모이제이션
   const handleSearchResults = useCallback((results: any[], hasQuery: boolean, query: string) => {
@@ -61,8 +64,8 @@ export const MainContent: React.FC = () => {
     // 편집 중이고 변경사항이 있는 경우 확인 다이얼로그 표시
     if (editingPromptId && hasUnsavedChanges) {
       showConfirmDialog(
-        '변경사항 저장',
-        '저장하지 않은 변경사항이 있습니다. 어떻게 하시겠습니까?',
+        t('confirm.saveChanges'),
+        t('confirm.unsavedChanges'),
         () => {
           // 저장 후 전환 - 현재 편집 중인 프롬프트를 저장하고 새 프롬프트로 전환
           // 이 부분은 PromptEditor에서 처리하도록 이벤트 발생
@@ -75,6 +78,11 @@ export const MainContent: React.FC = () => {
           const { hideConfirmDialog } = useAppStore.getState();
           hideConfirmDialog();
           proceedToLoadPrompt(promptInfo);
+        },
+        () => {
+          // 취소 버튼 클릭 (다이얼로그만 닫기)
+          const { hideConfirmDialog } = useAppStore.getState();
+          hideConfirmDialog();
         }
       );
       return;
@@ -94,11 +102,11 @@ export const MainContent: React.FC = () => {
       if (response.success) {
         selectPrompt(response.data);
       } else {
-        toast.error(`파일 로드 실패: ${response.error?.message}`);
+        toast.error(`${t('mainContent.fileLoadFailed')}: ${response.error?.message}`);
       }
     } catch (error) {
       console.error('Failed to load prompt:', error);
-      toast.error('파일 로드 중 오류가 발생했습니다.');
+      toast.error(t('mainContent.fileLoadError'));
     }
   };
 
@@ -123,9 +131,9 @@ export const MainContent: React.FC = () => {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
-            프롬프트 ({displayPrompts.length})
+            {t('mainContent.prompts')} ({displayPrompts.length})
             {isLoading && (
-              <span className="ml-2 text-sm text-gray-500">로딩 중...</span>
+              <span className="ml-2 text-sm text-gray-500">{t('mainContent.loading')}</span>
             )}
           </h2>
           <div className="flex items-center space-x-2">
@@ -134,7 +142,7 @@ export const MainContent: React.FC = () => {
               disabled={isLoading}
               className="px-3 py-1 text-sm border theme-border-primary rounded theme-button-secondary button-press disabled:opacity-50"
             >
-              새로고침
+              {t('mainContent.refresh')}
             </button>
                    <button 
                      onClick={() => {
@@ -143,8 +151,8 @@ export const MainContent: React.FC = () => {
                        // 편집 중이고 변경사항이 있는 경우 확인 다이얼로그 표시
                        if (editingPromptId && hasUnsavedChanges) {
                          showConfirmDialog(
-                           '변경사항 저장',
-                           '저장하지 않은 변경사항이 있습니다. 어떻게 하시겠습니까?',
+                           t('confirm.saveChanges'),
+                           t('confirm.unsavedChanges'),
                            () => {
                              // 저장 후 새 프롬프트 생성
                              window.dispatchEvent(new CustomEvent('save-and-create-new'));
@@ -154,6 +162,11 @@ export const MainContent: React.FC = () => {
                              const { hideConfirmDialog } = useAppStore.getState();
                              hideConfirmDialog();
                              proceedToCreateNew();
+                           },
+                           () => {
+                             // 취소 버튼 클릭 (다이얼로그만 닫기)
+                             const { hideConfirmDialog } = useAppStore.getState();
+                             hideConfirmDialog();
                            }
                          );
                          return;
@@ -164,13 +177,13 @@ export const MainContent: React.FC = () => {
                      }}
                      className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 button-press"
                    >
-                     새 프롬프트
+                     {t('mainContent.newPrompt')}
                    </button>
           </div>
         </div>
         {error && (
           <div className="mt-2 text-sm text-red-600">
-            오류: {error}
+            {t('mainContent.error')}: {error}
           </div>
         )}
       </div>
@@ -185,8 +198,8 @@ export const MainContent: React.FC = () => {
         {displayPrompts.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <div className="text-4xl mb-4">📝</div>
-            <h3 className="text-lg font-medium mb-2">프롬프트가 없습니다</h3>
-            <p className="text-sm">새 프롬프트를 만들어 시작하세요.</p>
+            <h3 className="text-lg font-medium mb-2">{t('mainContent.noPrompts')}</h3>
+            <p className="text-sm">{t('mainContent.createFirst')}</p>
           </div>
         ) : (
           <div className="p-2 space-y-2">

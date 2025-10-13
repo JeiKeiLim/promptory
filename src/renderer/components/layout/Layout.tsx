@@ -150,7 +150,7 @@ export const Layout: React.FC = () => {
         message={confirmDialog.message}
         onSave={confirmDialog.onSave || (() => {})}
         onDontSave={confirmDialog.onDontSave || (() => {})}
-        onCancel={() => useAppStore.getState().hideConfirmDialog()}
+        onCancel={confirmDialog.onCancel || (() => useAppStore.getState().hideConfirmDialog())}
         saveButtonText={confirmDialog.saveButtonText}
         dontSaveButtonText={confirmDialog.dontSaveButtonText}
         cancelButtonText={confirmDialog.cancelButtonText}

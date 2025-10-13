@@ -2,11 +2,12 @@
  * Monaco Editor 기반 프롬프트 편집기
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
 import { marked } from 'marked';
 import { parseParameters, convertToPromptParameters } from '@renderer/utils/parameterParser';
 import { ParameterEditor } from '@renderer/components/parameter/ParameterEditor';
+import { useTranslation } from 'react-i18next';
 
 // Monaco Editor 타입 정의
 type MonacoEditor = Parameters<NonNullable<React.ComponentProps<typeof Editor>['onMount']>>[0];
@@ -34,6 +35,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   onSave,
   onCancel
 }) => {
+  const { t } = useTranslation();
   // 메타데이터 상태
   const [title, setTitle] = useState(prompt?.metadata.title || '');
   const [description, setDescription] = useState(prompt?.metadata.description || '');
@@ -49,16 +51,16 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   // 마크다운 부분만 편집 (YAML 헤더는 별도 관리)
   const [markdownContent, setMarkdownContent] = useState(() => {
     if (isNewPrompt || !prompt) {
-      return `# ${title || '새 프롬프트'}
+      return `# ${title || t('editor.newPrompt')}
 
 ${description || ''}
 
-여기에 프롬프트 내용을 작성하세요...
+${t('editor.templateContent')}
 
-## 사용 예시
+## ${t('editor.usageExample')}
 
 \`\`\`
-예시 내용을 여기에 작성하세요.
+${t('editor.exampleContent')}
 \`\`\``;
     }
 
@@ -168,14 +170,14 @@ parameters: []
       setParseError(null);
       
       // 마크다운 내용 초기화
-      const newContent = `# 새 프롬프트
+      const newContent = `# ${t('editor.newPrompt')}
 
-여기에 프롬프트 내용을 작성하세요...
+${t('editor.templateContent')}
 
-## 사용 예시
+## ${t('editor.usageExample')}
 
 \`\`\`
-예시 내용을 여기에 작성하세요.
+${t('editor.exampleContent')}
 \`\`\``;
       setMarkdownContent(newContent);
     }
@@ -218,6 +220,29 @@ parameters: []
     }
   }, [markdownContent, title, description, tags, favorite, folderPath, prompt, isNewPrompt, setUnsavedChanges]);
 
+  // 앱 설정 가져오기
+  const { settings } = useAppStore();
+  
+  // Monaco 에디터 옵션 (설정값 적용)
+  const editorOptions = useMemo(() => ({
+    fontSize: 14,
+    lineHeight: 1.6,
+    wordWrap: settings.editor?.wordWrap ? 'on' as const : 'off' as const,
+    lineNumbers: settings.editor?.showLineNumbers ? 'on' as const : 'off' as const,
+    tabSize: 2,
+    fontFamily: "Monaco, 'Cascadia Code', 'Fira Code', monospace",
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    renderWhitespace: 'boundary' as const
+  }), [settings.editor]);
+  
+  // 에디터 옵션이 변경되면 실시간으로 업데이트
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateOptions(editorOptions);
+    }
+  }, [editorOptions]);
+
   // 에디터 마운트 시 설정
   const handleEditorDidMount = (editor: MonacoEditor) => {
     editorRef.current = editor;
@@ -228,15 +253,8 @@ parameters: []
       () => handleSave()
     );
 
-    // 에디터 옵션 설정
-    editor.updateOptions({
-      fontSize: 14,
-      lineHeight: 1.6,
-      wordWrap: 'on',
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      renderWhitespace: 'boundary'
-    });
+    // 에디터 옵션 설정 (이미 useMemo로 생성된 옵션이 적용됨)
+    editor.updateOptions(editorOptions);
   };
 
   // 커스텀 이벤트 리스너 등록
@@ -353,14 +371,14 @@ parameters: []
 
     // 제목 필수 검증
     if (!title.trim()) {
-      toast.error('제목은 필수입니다.');
+      toast.error(t('toast.error'));
       return;
     }
 
     // 최종 검증
     const validation = validateContent(markdownContent);
     if (!validation.isValid) {
-      toast.error(`저장 실패: ${validation.error}`);
+      toast.error(`${t('toast.error')}: ${validation.error}`);
       return;
     }
 
@@ -429,7 +447,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
         
         if (isNewPrompt) {
           // 새 프롬프트 생성 성공
-          toast.success(`새 프롬프트 "${title.trim()}"가 생성되었습니다.`);
+          toast.success(t('editor.newPromptCreated', { title: title.trim() }));
           
           // 편집 모드 해제 및 새로 생성된 프롬프트 선택
           const { setEditingPrompt } = useAppStore.getState();
@@ -439,7 +457,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
           setEditingPrompt(null); // 편집 모드 해제
         } else {
           // 기존 프롬프트 업데이트 성공
-          toast.success('프롬프트가 저장되었습니다.');
+          toast.success(t('editor.promptSaved'));
           
           // 프롬프트 스토어 업데이트 및 새 경로로 선택
           if (prompt) {
@@ -469,11 +487,11 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
         }
         
       } else {
-        toast.error(`저장 실패: ${response.error?.message}`);
+        toast.error(`${t('editor.saveFailed')}: ${response.error?.message}`);
       }
     } catch (error) {
       console.error('Save error:', error);
-      toast.error('저장 중 오류가 발생했습니다.');
+      toast.error(t('editor.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -485,8 +503,8 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
       // 확인 다이얼로그 표시
       const { showConfirmDialog, hideConfirmDialog } = useAppStore.getState();
       showConfirmDialog(
-        '변경사항 저장',
-        '저장하지 않은 변경사항이 있습니다. 어떻게 하시겠습니까?',
+        t('confirm.saveChanges'),
+        t('confirm.unsavedChanges'),
         () => {
           // 저장 후 취소
           hideConfirmDialog();
@@ -507,6 +525,10 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
           setHasChanges(false);
           setUnsavedChanges(false);
           onCancel?.();
+        },
+        () => {
+          // 취소 버튼 클릭 (다이얼로그만 닫기)
+          hideConfirmDialog();
         }
       );
     } else {
@@ -522,18 +544,18 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            {isNewPrompt ? '새 프롬프트 생성' : `${title} 편집`}
+            {isNewPrompt ? t('editor.newPrompt') : t('editor.editPrompt')}
           </h2>
           
           {hasChanges && (
             <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
-              수정됨
+              *
             </span>
           )}
           
           {parseError && (
             <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-              구문 오류
+              {t('toast.error')}
             </span>
           )}
         </div>
@@ -554,7 +576,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                          : 'text-gray-600 hover:text-gray-900'
                      }`}
                    >
-                     정보
+                     {t('editor.metadata')}
                    </button>
                    <button
                      onClick={() => {
@@ -569,7 +591,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                          : 'text-gray-600 hover:text-gray-900'
                      }`}
                    >
-                     파라미터
+                     {t('editor.parameters')}
                      {detectedParams.length > 0 && (
                        <span className="absolute -top-1 -right-1 h-4 w-4 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center">
                          {detectedParams.length}
@@ -583,7 +605,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
             onClick={handleCancel}
             className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
           >
-            취소
+            {t('editor.cancel')}
           </button>
           
           <button
@@ -591,7 +613,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
             disabled={!hasChanges || isSaving || !!parseError}
             className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? '저장 중...' : '저장'}
+            {t('editor.save')}
           </button>
         </div>
       </div>
@@ -619,15 +641,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                 onChange={handleContentChange}
                 onMount={handleEditorDidMount}
                 theme="vs-light"
-                options={{
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  wordWrap: 'on',
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  renderWhitespace: 'boundary',
-                  automaticLayout: true
-                }}
+                options={{ ...editorOptions, automaticLayout: true }}
               />
             </div>
 
@@ -639,18 +653,18 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
               <div className="p-4">
                 {showMetadataEditor && (
                   <div className="space-y-4 mb-6">
-                    <h3 className="text-md font-semibold text-gray-800">프롬프트 정보</h3>
+                    <h3 className="text-md font-semibold text-gray-800">{t('editor.metadata')}</h3>
                     
                     {/* 제목 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        제목 <span className="text-red-500">*</span>
+                        {t('editor.title')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="프롬프트 제목을 입력하세요"
+                        placeholder={t('editor.titlePlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         maxLength={200}
                       />
@@ -659,34 +673,31 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                     {/* 폴더 선택 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        폴더
+                        {t('editor.folder')}
                       </label>
                       <select
                         value={folderPath}
                         onChange={(e) => setFolderPath(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">루트 폴더</option>
+                        <option value="">{t('editor.rootFolder')}</option>
                         {availableFolders.filter(f => f !== '').map((folder) => (
                           <option key={folder} value={folder}>
                             {folder}
                           </option>
                         ))}
                       </select>
-                      <p className="mt-1 text-xs text-gray-500">
-                        프롬프트가 저장될 폴더를 선택하세요
-                      </p>
                     </div>
 
                     {/* 설명 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        설명
+                        {t('editor.description')}
                       </label>
                       <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="프롬프트에 대한 설명을 입력하세요"
+                        placeholder={t('editor.descriptionPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         maxLength={1000}
@@ -697,12 +708,12 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                     {/* 태그 */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        태그
+                        {t('editor.tags')}
                       </label>
                       <div className="flex items-center space-x-2 mb-2">
                         <input
                           type="text"
-                          placeholder="태그를 입력하고 Enter를 누르세요"
+                          placeholder={t('editor.tagsPlaceholder')}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -750,7 +761,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <label htmlFor="favorite" className="ml-2 block text-sm text-gray-900">
-                        즐겨찾기에 추가
+                        {t('editor.favorite')}
                       </label>
                     </div>
                   </div>
@@ -776,15 +787,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
               onChange={handleContentChange}
               onMount={handleEditorDidMount}
               theme="vs-light"
-              options={{
-                fontSize: 14,
-                lineHeight: 1.6,
-                wordWrap: 'on',
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                renderWhitespace: 'boundary',
-                automaticLayout: true
-              }}
+              options={{ ...editorOptions, automaticLayout: true }}
             />
           </div>
         )}
@@ -794,11 +797,11 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
         <div className="flex items-center justify-between">
           <div>
-            {isNewPrompt ? '새 프롬프트' : (prompt?.modifiedAt ? `마지막 수정: ${new Date(prompt.modifiedAt).toLocaleString()}` : '수정 시간 없음')}
+            {isNewPrompt ? t('editor.newPrompt') : (prompt?.modifiedAt ? `${t('editor.modifiedAt')}: ${new Date(prompt.modifiedAt).toLocaleString()}` : t('editor.noModifiedTime'))}
           </div>
           <div className="flex items-center space-x-4">
-            <span>Cmd+S: 저장</span>
-            <span>{markdownContent.length} 문자</span>
+            <span>Cmd+S: {t('editor.save')}</span>
+            <span>{markdownContent.length}</span>
           </div>
         </div>
       </div>

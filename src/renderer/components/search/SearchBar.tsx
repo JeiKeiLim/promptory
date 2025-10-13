@@ -2,20 +2,24 @@
  * 검색바 컴포넌트 (Fuse.js 기반 퍼지 검색)
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { usePromptStore } from '@renderer/stores/usePromptStore';
+import { useAppStore } from '@renderer/stores/useAppStore';
 import type { PromptFileInfo } from '@shared/types/prompt';
+import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
   onSearchResults?: (results: PromptFileInfo[], hasQuery: boolean, query: string) => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   
   const { prompts } = usePromptStore();
+  const { settings } = useAppStore();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const onSearchResultsRef = useRef(onSearchResults);
 
@@ -24,15 +28,24 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
     onSearchResultsRef.current = onSearchResults;
   }, [onSearchResults]);
 
-  // Fuse.js 설정
-  const fuse = React.useMemo(() => {
+  // Fuse.js 설정 (검색 범위 설정 적용)
+  const fuse = useMemo(() => {
+    const searchScope = settings.search?.searchScope || { title: true, tags: true, content: false };
+    const keys: Array<{ name: string; weight: number }> = [];
+    
+    if (searchScope.title) {
+      keys.push({ name: 'metadata.title', weight: 0.4 });
+    }
+    if (searchScope.tags) {
+      keys.push({ name: 'metadata.tags', weight: 0.3 });
+    }
+    if (searchScope.content) {
+      keys.push({ name: 'content', weight: 0.2 });
+    }
+    keys.push({ name: 'path', weight: 0.1 });
+    
     const options = {
-      keys: [
-        { name: 'metadata.title', weight: 0.4 },
-        { name: 'metadata.description', weight: 0.3 },
-        { name: 'metadata.tags', weight: 0.2 },
-        { name: 'path', weight: 0.1 }
-      ],
+      keys,
       threshold: 0.3, // 0 = 완전 일치, 1 = 모든 것 일치
       includeScore: true,
       includeMatches: true,
@@ -40,7 +53,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
     };
     
     return new Fuse(prompts, options);
-  }, [prompts]);
+  }, [prompts, settings.search]);
 
   // 검색 실행
   const performSearch = React.useCallback((searchQuery: string) => {
@@ -54,7 +67,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
     
     // 디바운싱을 위한 타이머
     const timer = setTimeout(() => {
-      const results = fuse.search(searchQuery);
+      const maxResults = settings.search?.maxResults || 100;
+      const results = fuse.search(searchQuery, { limit: maxResults });
       const items = results.map(result => result.item);
       
       setIsSearching(false);
@@ -62,7 +76,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [fuse]);
+  }, [fuse, settings.search]);
 
   // 검색어 변경 처리
   useEffect(() => {
@@ -113,7 +127,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearchResults }) => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="프롬프트 검색... (Cmd+F)"
+          placeholder={t('searchBar.placeholder')}
           className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         

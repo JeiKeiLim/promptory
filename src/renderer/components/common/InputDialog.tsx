@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface InputDialogProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const InputDialog: React.FC<InputDialogProps> = ({
   onConfirm,
   onCancel
 }) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,14 +86,14 @@ export const InputDialog: React.FC<InputDialogProps> = ({
               onClick={onCancel}
               className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
-              취소
+              {t('confirm.cancel')}
             </button>
             <button
               type="submit"
               disabled={!value.trim()}
               className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
-              확인
+              {t('inputDialog.confirm')}
             </button>
           </div>
         </form>

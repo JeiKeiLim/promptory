@@ -10,18 +10,20 @@ import { EditorSettings } from './EditorSettings';
 import { SearchSettings } from './SearchSettings';
 import { ShortcutSettings } from './ShortcutSettings';
 import { WindowSettings } from './WindowSettings';
+import { useTranslation } from 'react-i18next';
 
 export const SettingsModal: React.FC = () => {
+  const { t } = useTranslation();
   const { settingsModal, hideSettingsModal, setSettingsTab } = useAppStore();
 
   if (!settingsModal.isOpen) return null;
 
   const tabs = [
-    { id: 'general', label: '일반', icon: '⚙️' },
-    { id: 'editor', label: '에디터', icon: '📝' },
-    { id: 'search', label: '검색', icon: '🔍' },
-    { id: 'shortcuts', label: '단축키', icon: '⌨️' },
-    { id: 'window', label: '윈도우', icon: '🖥️' }
+    { id: 'general', label: t('settings.general'), icon: '⚙️' },
+    { id: 'editor', label: t('settings.editor'), icon: '📝' },
+    { id: 'search', label: t('settings.search'), icon: '🔍' },
+    { id: 'shortcuts', label: t('settings.shortcuts'), icon: '⌨️' },
+    { id: 'window', label: t('settings.window'), icon: '🖥️' }
   ] as const;
 
   const renderTabContent = () => {
@@ -58,7 +60,7 @@ export const SettingsModal: React.FC = () => {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
-                설정
+                {t('settings.title')}
               </h2>
               <button
                 onClick={hideSettingsModal}

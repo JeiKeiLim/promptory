@@ -9,12 +9,14 @@ import { ParameterInputModal } from '@renderer/components/prompt/ParameterInputM
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { toast } from '@renderer/components/common/ToastContainer';
+import { useTranslation } from 'react-i18next';
 
 interface PromptDetailProps {
   prompt: PromptFile | null; // 새 프롬프트 생성 시 null 허용
 }
 
 export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState(prompt);
   const [showParameterModal, setShowParameterModal] = useState(false);
@@ -110,9 +112,9 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
       <div className="flex items-center justify-center h-full text-gray-500">
         <div className="text-center">
           <div className="text-6xl mb-4">📝</div>
-          <h3 className="text-lg font-medium mb-2">프롬프트를 선택하세요</h3>
+          <h3 className="text-lg font-medium mb-2">{t('promptDetail.selectPrompt')}</h3>
           <p className="text-sm">
-            좌측에서 프롬프트를 선택하면 여기에 내용이 표시됩니다.
+            {t('promptDetail.selectPromptMessage')}
           </p>
         </div>
       </div>
@@ -126,7 +128,7 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <h1 className="text-xl font-semibold text-gray-900">
-              {currentPrompt?.metadata?.title || '새 프롬프트'}
+              {currentPrompt?.metadata?.title || t('promptDetail.newPromptTitle')}
             </h1>
             {currentPrompt?.metadata?.favorite && (
               <span className="text-yellow-500">⭐</span>
@@ -137,21 +139,21 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
               onClick={() => setShowParameterModal(true)}
               className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              사용
+              {t('promptDetail.usePrompt')}
             </button>
             <button 
               onClick={handleEditClick}
               className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
             >
-              편집
+              {t('promptDetail.edit')}
             </button>
             <button 
               onClick={() => {
                 if (currentPrompt) {
                   const { showConfirmDialog } = useAppStore.getState();
                   showConfirmDialog(
-                    '프롬프트 삭제',
-                    `"${currentPrompt.metadata?.title || '제목 없음'}" 프롬프트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
+                    t('promptDetail.confirmDeleteTitle'),
+                    t('promptDetail.confirmDeleteMessage'),
                     async () => {
                       // 삭제 실행
                       try {
@@ -160,17 +162,17 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
                         
                         const response = await window.electronAPI.invoke('file:delete', currentPrompt.path);
                         if (response.success) {
-                          toast.success('프롬프트가 삭제되었습니다.');
+                          toast.success(t('toast.deleted'));
                           // 프롬프트 목록 새로고침
                           const { refreshData, selectPrompt } = usePromptStore.getState();
                           selectPrompt(null); // 선택 해제
                           await refreshData();
                         } else {
-                          toast.error(`삭제 실패: ${response.error?.message}`);
+                          toast.error(`${t('toast.error')}: ${response.error?.message}`);
                         }
                       } catch (error) {
                         console.error('Delete error:', error);
-                        toast.error('삭제 중 오류가 발생했습니다.');
+                        toast.error(t('toast.error'));
                       }
                     },
                     () => {
@@ -178,17 +180,22 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
                       const { hideConfirmDialog } = useAppStore.getState();
                       hideConfirmDialog();
                     },
+                    () => {
+                      // 취소 버튼 클릭 (다이얼로그만 닫기)
+                      const { hideConfirmDialog } = useAppStore.getState();
+                      hideConfirmDialog();
+                    },
                     {
-                      saveButtonText: '삭제',
-                      dontSaveButtonText: '취소',
-                      cancelButtonText: '취소'
+                      saveButtonText: t('promptDetail.delete'),
+                      dontSaveButtonText: t('confirm.cancel'),
+                      cancelButtonText: t('confirm.cancel')
                     }
                   );
                 }
               }}
               className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
             >
-              삭제
+              {t('promptDetail.delete')}
             </button>
           </div>
         </div>
@@ -200,9 +207,9 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
         {/* 메타데이터 */}
         {currentPrompt && (
           <div className="flex items-center mt-3 text-sm text-gray-500 space-x-4">
-            <span>생성: {currentPrompt.metadata?.created_at ? new Date(currentPrompt.metadata.created_at).toLocaleDateString() : '알 수 없음'}</span>
-            <span>수정: {new Date(currentPrompt.modifiedAt).toLocaleDateString()}</span>
-            <span>크기: {(currentPrompt.fileSize / 1024).toFixed(1)}KB</span>
+            <span>{t('promptDetail.createdAt')}: {currentPrompt.metadata?.created_at ? new Date(currentPrompt.metadata.created_at).toLocaleDateString() : '-'}</span>
+            <span>{t('promptDetail.modifiedAt')}: {new Date(currentPrompt.modifiedAt).toLocaleDateString()}</span>
+            <span>{(currentPrompt.fileSize / 1024).toFixed(1)}KB</span>
           </div>
         )}
         
@@ -224,7 +231,7 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
       {/* 파라미터 */}
       {currentPrompt && currentPrompt.metadata?.parameters && currentPrompt.metadata.parameters.length > 0 && (
         <div className="p-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">파라미터</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">{t('promptDetail.parameters')}</h3>
           <div className="space-y-2">
             {currentPrompt.metadata.parameters.map((param) => (
               <div key={param.name} className="flex items-center justify-between">

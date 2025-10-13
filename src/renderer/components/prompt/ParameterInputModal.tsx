@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { PromptFile, PromptParameter } from '@shared/types/prompt';
+import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import { toast } from '@renderer/components/common/ToastContainer';
 
@@ -22,6 +23,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
   isOpen,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [parameterValues, setParameterValues] = useState<ParameterValues>({});
   const [processedContent, setProcessedContent] = useState('');
   const [autoClose, setAutoClose] = useState(true);
@@ -64,21 +66,21 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
   // 클립보드 복사 핸들러
   const handleCopy = async () => {
     if (!processedContent.trim()) {
-      toast.error('복사할 내용이 없습니다.');
+      toast.error(t('parameterInputModal.emptyContent'));
       return;
     }
 
     setIsLoading(true);
     try {
       await navigator.clipboard.writeText(processedContent);
-      toast.success('프롬프트가 클립보드에 복사되었습니다!');
+      toast.success(t('parameterInputModal.copySuccess'));
       
       if (autoClose) {
         onClose();
       }
     } catch (error) {
       console.error('클립보드 복사 실패:', error);
-      toast.error('클립보드 복사에 실패했습니다.');
+      toast.error(t('parameterInputModal.copyFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +93,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
       .map(param => param.name);
 
     if (missingParams.length > 0) {
-      toast.error(`필수 파라미터를 입력해주세요: ${missingParams.join(', ')}`);
+      toast.error(`${t('parameterInputModal.requiredParams')}: ${missingParams.join(', ')}`);
       return false;
     }
     return true;
@@ -138,7 +140,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">프롬프트 사용</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{t('parameterInputModal.title')}</h2>
             <p className="text-sm text-gray-600 mt-1">{prompt.metadata.title}</p>
           </div>
           <button
@@ -153,13 +155,13 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
         <div className="flex-1 flex min-h-0">
           {/* 좌측: 파라미터 입력 */}
           <div className="w-1/2 p-6 border-r border-gray-200 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">파라미터 입력</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.parameterInput')}</h3>
             
             {prompt.metadata.parameters.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <div className="text-4xl mb-2">📝</div>
-                <p>이 프롬프트에는 파라미터가 없습니다.</p>
-                <p className="text-sm mt-1">바로 복사해서 사용하세요!</p>
+                <p>{t('parameterInputModal.noParams')}</p>
+                <p className="text-sm mt-1">{t('parameterInputModal.copyDirectly')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -176,7 +178,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                         onChange={(e) => handleParameterChange(param.name, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">선택하세요</option>
+                        <option value="">{t('parameterInputModal.selectOption')}</option>
                         {param.options.map((option) => (
                           <option key={option} value={option}>
                             {option}
@@ -187,7 +189,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                       <textarea
                         value={parameterValues[param.name] || ''}
                         onChange={(e) => handleParameterChange(param.name, e.target.value)}
-                        placeholder={`${param.name}을(를) 입력하세요...`}
+                        placeholder={t('parameterInputModal.inputPlaceholder', { name: param.name })}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       />
@@ -204,7 +206,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
 
           {/* 우측: 실시간 미리보기 */}
           <div className="w-1/2 p-6 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">미리보기</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.preview')}</h3>
             
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[400px]">
               <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
@@ -224,7 +226,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                 onChange={(e) => setAutoClose(e.target.checked)}
                 className="mr-2"
               />
-              복사 후 자동으로 닫기
+{t('parameterInputModal.autoClose')}
             </label>
           </div>
           
@@ -233,14 +235,14 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
-              취소
+              {t('confirm.cancel')}
             </button>
             <button
               onClick={handleCopyWithValidation}
               disabled={isLoading}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? '복사 중...' : '클립보드에 복사'}
+              {isLoading ? t('parameterInputModal.copying') : t('parameterInputModal.copyToClipboard')}
             </button>
           </div>
         </div>

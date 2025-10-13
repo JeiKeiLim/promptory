@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@renderer/stores/useAppStore';
+import { useTranslation } from 'react-i18next';
 
 interface ShortcutInputProps {
   label: string;
@@ -13,6 +14,7 @@ interface ShortcutInputProps {
 }
 
 const ShortcutInput: React.FC<ShortcutInputProps> = ({ label, description, value, onChange }) => {
+  const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
   const [currentKeys, setCurrentKeys] = useState<string[]>([]);
 
@@ -62,7 +64,7 @@ const ShortcutInput: React.FC<ShortcutInputProps> = ({ label, description, value
   };
 
   const displayValue = isRecording 
-    ? (currentKeys.length > 0 ? currentKeys.join(' + ') : '키를 입력하세요...')
+    ? (currentKeys.length > 0 ? currentKeys.join(' + ') : t('settings.recording'))
     : value.replace('CmdOrCtrl', navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl');
 
   return (
@@ -115,7 +117,7 @@ const ShortcutInput: React.FC<ShortcutInputProps> = ({ label, description, value
               e.currentTarget.style.color = 'var(--color-text-secondary, #6b7280)';
             }}
           >
-            취소
+{t('confirm.cancel')}
           </button>
         ) : (
           <button
@@ -131,7 +133,7 @@ const ShortcutInput: React.FC<ShortcutInputProps> = ({ label, description, value
               e.currentTarget.style.color = 'var(--color-accent, #3b82f6)';
             }}
           >
-            변경
+{t('settings.change')}
           </button>
         )}
       </div>
@@ -140,6 +142,7 @@ const ShortcutInput: React.FC<ShortcutInputProps> = ({ label, description, value
 };
 
 export const ShortcutSettings: React.FC = () => {
+  const { t } = useTranslation();
   const { settings, updateSettings, resetSettings } = useAppStore();
 
   // 안전한 기본값 설정
@@ -165,7 +168,7 @@ export const ShortcutSettings: React.FC = () => {
   };
 
   const handleResetShortcuts = () => {
-    if (confirm('모든 단축키를 기본값으로 되돌리시겠습니까?')) {
+    if (confirm(t('settings.resetAllShortcuts'))) {
       resetSettings();
     }
   };
@@ -173,48 +176,48 @@ export const ShortcutSettings: React.FC = () => {
   const shortcutList = [
     {
       key: 'newPrompt' as const,
-      label: '새 프롬프트',
-      description: '새로운 프롬프트를 생성합니다'
+      label: t('settings.newPromptAction'),
+      description: t('settings.newPromptDesc')
     },
     {
       key: 'search' as const,
-      label: '검색',
-      description: '검색창에 포커스를 맞춥니다'
+      label: t('settings.searchAction'),
+      description: t('settings.searchDesc')
     },
     {
       key: 'editPrompt' as const,
-      label: '편집 모드',
-      description: '선택된 프롬프트를 편집 모드로 전환합니다'
+      label: t('settings.editModeAction'),
+      description: t('settings.editModeDesc')
     },
     {
       key: 'usePrompt' as const,
-      label: '프롬프트 사용',
-      description: '파라미터 입력 모달을 엽니다'
+      label: t('settings.usePromptAction'),
+      description: t('settings.usePromptDesc')
     },
     {
       key: 'toggleFavorite' as const,
-      label: '즐겨찾기 토글',
-      description: '선택된 프롬프트의 즐겨찾기를 토글합니다'
+      label: t('settings.toggleFavoriteAction'),
+      description: t('settings.toggleFavoriteDesc')
     },
     {
       key: 'copyContent' as const,
-      label: '내용 복사',
-      description: '프롬프트 내용을 클립보드에 복사합니다'
+      label: t('settings.copyContentAction'),
+      description: t('settings.copyContentDesc')
     },
     {
       key: 'refresh' as const,
-      label: '새로고침',
-      description: '프롬프트 목록을 새로고침합니다'
+      label: t('settings.refreshAction'),
+      description: t('settings.refreshDesc')
     },
     {
       key: 'showHelp' as const,
-      label: '도움말',
-      description: '단축키 도움말을 표시합니다'
+      label: t('settings.helpAction'),
+      description: t('settings.helpDesc')
     },
     {
       key: 'exitEdit' as const,
-      label: '편집 종료',
-      description: '편집 모드를 종료합니다'
+      label: t('settings.exitEditAction'),
+      description: t('settings.exitEditDesc')
     }
   ];
 
@@ -227,7 +230,7 @@ export const ShortcutSettings: React.FC = () => {
             className="text-sm font-medium"
             style={{ color: 'var(--color-text-primary, #111827)' }}
           >
-            키보드 단축키
+            {t('settings.keyboardShortcuts')}
           </h4>
           <button
             onClick={handleResetShortcuts}
@@ -246,7 +249,7 @@ export const ShortcutSettings: React.FC = () => {
               e.currentTarget.style.backgroundColor = 'var(--color-bg-primary, #ffffff)';
             }}
           >
-            기본값 복원
+            {t('settings.resetDefaults')}
           </button>
         </div>
 
@@ -265,35 +268,34 @@ export const ShortcutSettings: React.FC = () => {
 
       {/* 단축키 사용법 */}
       <div className="border-t pt-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">단축키 사용법</h4>
         <div className="space-y-2 text-sm text-gray-600">
           <div className="flex items-start space-x-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>단축키를 변경하려면 "변경" 버튼을 클릭하고 새로운 키 조합을 입력하세요</span>
+            <span>{t('settings.shortcutInstructions')}</span>
           </div>
           <div className="flex items-start space-x-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>Cmd (macOS) 또는 Ctrl (Windows/Linux) + 다른 키 조합을 사용하세요</span>
+            <span>{t('settings.shortcutTip1')}</span>
           </div>
           <div className="flex items-start space-x-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>Shift, Alt 키도 함께 사용할 수 있습니다</span>
+            <span>{t('settings.shortcutTip2')}</span>
           </div>
           <div className="flex items-start space-x-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>이미 사용 중인 단축키는 자동으로 감지되어 경고됩니다</span>
+            <span>{t('settings.shortcutTip3')}</span>
           </div>
         </div>
       </div>
 
       {/* 충돌 감지 (향후 구현) */}
       <div className="border-t pt-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">고급 기능</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">{t('settings.advancedFeatures')}</h4>
         <div className="space-y-2 text-sm text-gray-500">
-          <p>• 단축키 충돌 자동 감지</p>
-          <p>• 컨텍스트별 단축키 설정</p>
-          <p>• 단축키 내보내기/가져오기</p>
-          <p className="text-xs italic">이 기능들은 향후 업데이트에서 제공될 예정입니다.</p>
+          <p>• {t('settings.conflictDetection')}</p>
+          <p>• {t('settings.contextShortcuts')}</p>
+          <p>• {t('settings.exportImportShortcuts')}</p>
+          <p className="text-xs italic">{t('settings.comingSoon')}</p>
         </div>
       </div>
     </div>

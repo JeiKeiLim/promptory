@@ -17,7 +17,9 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutsOptions = {}) => 
     editingPromptId, 
     setEditingPrompt, 
     hasUnsavedChanges,
-    showConfirmDialog 
+    showConfirmDialog,
+    hideConfirmDialog,
+    settings
   } = useAppStore();
   
   const { 
@@ -31,6 +33,35 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutsOptions = {}) => 
     enableGlobalShortcuts = true,
     enableEditorShortcuts = true
   } = options;
+  
+  // 단축키 설정 가져오기
+  const shortcuts = settings.shortcuts || {
+    newPrompt: 'CmdOrCtrl+N',
+    search: 'CmdOrCtrl+F',
+    toggleFavorite: 'CmdOrCtrl+D',
+    usePrompt: 'CmdOrCtrl+U',
+    editPrompt: 'CmdOrCtrl+E',
+    copyContent: 'CmdOrCtrl+Shift+C',
+    showHelp: 'CmdOrCtrl+/',
+    exitEdit: 'Escape',
+    refresh: 'CmdOrCtrl+R'
+  };
+  
+  // 단축키 문자열을 파싱하는 헬퍼 함수
+  const matchesShortcut = (e: KeyboardEvent, shortcut: string): boolean => {
+    const parts = shortcut.split('+');
+    const hasCmdOrCtrl = parts.includes('CmdOrCtrl') || parts.includes('Cmd') || parts.includes('Ctrl');
+    const hasShift = parts.includes('Shift');
+    const hasAlt = parts.includes('Alt');
+    const key = parts[parts.length - 1].toLowerCase();
+    
+    const cmdMatch = hasCmdOrCtrl ? (e.metaKey || e.ctrlKey) : !e.metaKey && !e.ctrlKey;
+    const shiftMatch = hasShift ? e.shiftKey : !e.shiftKey;
+    const altMatch = hasAlt ? e.altKey : !e.altKey;
+    const keyMatch = e.key.toLowerCase() === key || e.code.toLowerCase() === key.toLowerCase();
+    
+    return cmdMatch && shiftMatch && altMatch && keyMatch;
+  };
 
   useEffect(() => {
     if (!enableGlobalShortcuts) return;
@@ -58,78 +89,47 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutsOptions = {}) => 
         return;
       }
 
-      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      const isShift = e.shiftKey;
-
-      if (isCmdOrCtrl) {
-        switch (e.key) {
-          case 'n':
-            e.preventDefault();
-            handleNewPrompt();
-            break;
-
-          case 'f':
-            e.preventDefault();
-            handleFocusSearch();
-            break;
-
-          case 'r':
-            e.preventDefault();
-            handleRefresh();
-            break;
-
-          case 'd':
-            if (selectedPrompt && !editingPromptId) {
-              e.preventDefault();
-              handleToggleFavorite();
-            }
-            break;
-
-          case 'u':
-            if (selectedPrompt && !editingPromptId) {
-              e.preventDefault();
-              handleUsePrompt();
-            }
-            break;
-
-          case 'e':
-            if (selectedPrompt && !editingPromptId) {
-              e.preventDefault();
-              handleEditPrompt();
-            }
-            break;
-
-          case 'c':
-            if (isShift && selectedPrompt && !editingPromptId) {
-              e.preventDefault();
-              handleCopyPrompt();
-            }
-            break;
-
-          case ',':
-            e.preventDefault();
-            handleOpenSettings();
-            break;
-        }
-      }
-
-      // ESC 키 처리
-      if (e.key === 'Escape') {
-        handleEscape();
-      }
-
-      // 방향키 네비게이션 (편집 모드가 아닐 때만)
-      if (!editingPromptId && !isInputFocused) {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      // 단축키 매칭 (설정값 사용)
+      if (matchesShortcut(e, shortcuts.newPrompt)) {
+        e.preventDefault();
+        handleNewPrompt();
+      } else if (matchesShortcut(e, shortcuts.search)) {
+        e.preventDefault();
+        handleFocusSearch();
+      } else if (matchesShortcut(e, shortcuts.refresh)) {
+        e.preventDefault();
+        handleRefresh();
+      } else if (matchesShortcut(e, shortcuts.toggleFavorite)) {
+        if (selectedPrompt && !editingPromptId) {
           e.preventDefault();
-          handleArrowNavigation(e.key === 'ArrowUp' ? 'up' : 'down');
+          handleToggleFavorite();
         }
+      } else if (matchesShortcut(e, shortcuts.usePrompt)) {
+        if (selectedPrompt && !editingPromptId) {
+          e.preventDefault();
+          handleUsePrompt();
+        }
+      } else if (matchesShortcut(e, shortcuts.editPrompt)) {
+        if (selectedPrompt && !editingPromptId) {
+          e.preventDefault();
+          handleEditPrompt();
+        }
+      } else if (matchesShortcut(e, shortcuts.copyContent)) {
+        if (selectedPrompt && !editingPromptId) {
+          e.preventDefault();
+          handleCopyPrompt();
+        }
+      } else if (matchesShortcut(e, shortcuts.showHelp)) {
+        e.preventDefault();
+        showShortcutHelp();
+      } else if (matchesShortcut(e, shortcuts.exitEdit)) {
+        handleEscape();
       }
     };
 
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [enableGlobalShortcuts, editingPromptId, selectedPrompt, hasUnsavedChanges]);
+  }, [enableGlobalShortcuts, shortcuts, selectedPrompt, editingPromptId, hasUnsavedChanges]);
 
   // 새 프롬프트 생성
   const handleNewPrompt = () => {
@@ -145,6 +145,10 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutsOptions = {}) => 
           // 저장하지 않고 새 프롬프트 생성
           selectPrompt(null);
           setEditingPrompt('new-prompt');
+        },
+        () => {
+          // 취소 버튼 클릭 (다이얼로그만 닫기)
+          hideConfirmDialog();
         }
       );
     } else {
@@ -250,6 +254,10 @@ export const useKeyboardShortcuts = (options: KeyboardShortcutsOptions = {}) => 
             // 저장하지 않고 편집 모드 종료
             setEditingPrompt(null);
             // 키보드 단축키 토스트 제거
+          },
+          () => {
+            // 취소 버튼 클릭 (다이얼로그만 닫기)
+            hideConfirmDialog();
           }
         );
       } else {

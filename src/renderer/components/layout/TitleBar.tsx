@@ -10,8 +10,10 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { useAppStore } from '@renderer/stores/useAppStore';
+import { useTranslation } from 'react-i18next';
 
 export const TitleBar: React.FC = () => {
+  const { t } = useTranslation();
   const { showSettingsModal } = useAppStore();
 
   const handleMinimize = () => {
@@ -60,7 +62,7 @@ export const TitleBar: React.FC = () => {
             <button
               onClick={() => showSettingsModal()}
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
-              title="설정"
+              title={t('titleBar.settings')}
             >
               <Cog6ToothIcon className="w-4 h-4 text-gray-600" />
             </button>
@@ -91,7 +93,7 @@ export const TitleBar: React.FC = () => {
             <button
               onClick={() => showSettingsModal()}
               className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
-              title="설정"
+              title={t('titleBar.settings')}
             >
               <Cog6ToothIcon className="w-4 h-4 text-gray-600" />
             </button>
@@ -101,21 +103,21 @@ export const TitleBar: React.FC = () => {
               <button
                 onClick={handleMinimize}
                 className="p-1.5 hover:bg-gray-100 transition-colors"
-                title="최소화"
+                title={t('titleBar.minimize')}
               >
                 <MinusIcon className="w-4 h-4 text-gray-600" />
               </button>
               <button
                 onClick={handleMaximize}
                 className="p-1.5 hover:bg-gray-100 transition-colors"
-                title="최대화"
+                title={t('titleBar.maximize')}
               >
                 <Square2StackIcon className="w-4 h-4 text-gray-600" />
               </button>
               <button
                 onClick={handleClose}
                 className="p-1.5 hover:bg-red-500 hover:text-white transition-colors"
-                title="닫기"
+                title={t('titleBar.close')}
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>

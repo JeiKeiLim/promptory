@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -23,25 +24,32 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onSave,
   onDontSave,
   onCancel,
-  saveButtonText = '저장',
-  dontSaveButtonText = '저장하지 않음',
-  cancelButtonText = '취소'
+  saveButtonText,
+  dontSaveButtonText,
+  cancelButtonText
 }) => {
-  if (!isOpen) return null;
+  const { t } = useTranslation();
+  
+  // 기본값 설정 (번역된 텍스트 사용)
+  const finalSaveText = saveButtonText || t('confirm.save');
+  const finalDontSaveText = dontSaveButtonText || t('confirm.dontSave');
+  const finalCancelText = cancelButtonText || t('confirm.cancel');
 
-  // ESC 키 처리
+  // ESC 키 처리 - hooks는 항상 조건부 return 전에 호출되어야 함
   React.useEffect(() => {
+    if (!isOpen) return;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onCancel();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onCancel]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -59,17 +67,17 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             onClick={onCancel}
             className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
-            {cancelButtonText}
+            {finalCancelText}
           </button>
           
-          {dontSaveButtonText !== '취소' && (
+          {finalDontSaveText !== finalCancelText && (
             <button
               onClick={() => {
                 onDontSave();
               }}
               className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
-              {dontSaveButtonText}
+              {finalDontSaveText}
             </button>
           )}
           
@@ -78,12 +86,12 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               onSave();
             }}
             className={`px-4 py-2 text-sm rounded-md transition-colors ${
-              saveButtonText === '삭제' 
+              finalSaveText === t('confirm.delete')
                 ? 'bg-red-600 text-white hover:bg-red-700' 
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
-            {saveButtonText}
+            {finalSaveText}
           </button>
         </div>
       </div>

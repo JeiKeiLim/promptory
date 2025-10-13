@@ -4,8 +4,10 @@
 
 import React from 'react';
 import { useAppStore } from '@renderer/stores/useAppStore';
+import { useTranslation } from 'react-i18next';
 
 export const SearchSettings: React.FC = () => {
+  const { t } = useTranslation();
   const { settings, updateSettings } = useAppStore();
 
   // 안전한 기본값 설정
@@ -32,12 +34,6 @@ export const SearchSettings: React.FC = () => {
     });
   };
 
-  const handleCaseSensitiveChange = (caseSensitive: boolean) => {
-    updateSettings({
-      search: { ...searchSettings, caseSensitive }
-    });
-  };
-
   const handleSearchScopeChange = (scope: keyof typeof searchSettings.searchScope, value: boolean) => {
     updateSettings({
       search: {
@@ -58,7 +54,7 @@ export const SearchSettings: React.FC = () => {
           className="block text-sm font-medium mb-2"
           style={{ color: 'var(--color-text-primary, #111827)' }}
         >
-          최대 검색 결과: {searchSettings.maxResults}개
+          {t('settings.maxResults')}: {searchSettings.maxResults}
         </label>
         <input
           type="range"
@@ -73,16 +69,10 @@ export const SearchSettings: React.FC = () => {
           }}
         />
         <div className="flex justify-between text-xs mt-1">
-          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>10개</span>
-          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>100개</span>
-          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>500개</span>
+          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>10</span>
+          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>100</span>
+          <span style={{ color: 'var(--color-text-secondary, #6b7280)' }}>500</span>
         </div>
-        <p 
-          className="text-xs mt-2"
-          style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-        >
-          검색 결과가 많을 경우 성능에 영향을 줄 수 있습니다
-        </p>
       </div>
 
       {/* 검색 범위 */}
@@ -91,7 +81,7 @@ export const SearchSettings: React.FC = () => {
           className="block text-sm font-medium mb-3"
           style={{ color: 'var(--color-text-primary, #111827)' }}
         >
-          검색 범위
+          {t('settings.searchScope')}
         </label>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -100,14 +90,8 @@ export const SearchSettings: React.FC = () => {
                 className="text-sm"
                 style={{ color: 'var(--color-text-primary, #111827)' }}
               >
-                제목
+                {t('settings.searchTitle')}
               </span>
-              <p 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-              >
-                프롬프트 제목에서 검색
-              </p>
             </div>
             <input
               type="checkbox"
@@ -127,14 +111,8 @@ export const SearchSettings: React.FC = () => {
                 className="text-sm"
                 style={{ color: 'var(--color-text-primary, #111827)' }}
               >
-                태그
+                {t('settings.searchTags')}
               </span>
-              <p 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-              >
-                프롬프트 태그에서 검색
-              </p>
             </div>
             <input
               type="checkbox"
@@ -154,14 +132,8 @@ export const SearchSettings: React.FC = () => {
                 className="text-sm"
                 style={{ color: 'var(--color-text-primary, #111827)' }}
               >
-                내용
+                {t('settings.searchContent')}
               </span>
-              <p 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-              >
-                프롬프트 본문에서 검색
-              </p>
             </div>
             <input
               type="checkbox"
@@ -179,12 +151,6 @@ export const SearchSettings: React.FC = () => {
 
       {/* 검색 옵션 */}
       <div>
-        <label 
-          className="block text-sm font-medium mb-3"
-          style={{ color: 'var(--color-text-primary, #111827)' }}
-        >
-          검색 옵션
-        </label>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -192,41 +158,8 @@ export const SearchSettings: React.FC = () => {
                 className="text-sm"
                 style={{ color: 'var(--color-text-primary, #111827)' }}
               >
-                대소문자 구분
+                {t('settings.highlightMatches')}
               </span>
-              <p 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-              >
-                검색 시 대소문자를 구분합니다
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={searchSettings.caseSensitive}
-              onChange={(e) => handleCaseSensitiveChange(e.target.checked)}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              style={{
-                borderColor: 'var(--color-border-primary, #d1d5db)',
-                backgroundColor: 'var(--color-bg-primary, #ffffff)'
-              }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <span 
-                className="text-sm"
-                style={{ color: 'var(--color-text-primary, #111827)' }}
-              >
-                검색어 하이라이트
-              </span>
-              <p 
-                className="text-xs"
-                style={{ color: 'var(--color-text-secondary, #6b7280)' }}
-              >
-                검색 결과에서 검색어를 강조 표시합니다
-              </p>
             </div>
             <input
               type="checkbox"
@@ -251,7 +184,7 @@ export const SearchSettings: React.FC = () => {
           className="text-sm font-medium mb-3"
           style={{ color: 'var(--color-text-primary, #111827)' }}
         >
-          검색 성능 팁
+          {t('settings.searchTips')}
         </h4>
         <div 
           className="space-y-2 text-sm"
@@ -264,7 +197,7 @@ export const SearchSettings: React.FC = () => {
             >
               •
             </span>
-            <span>검색 범위를 줄이면 더 빠른 검색이 가능합니다</span>
+            <span>{t('settings.searchTip1')}</span>
           </div>
           <div className="flex items-start space-x-2">
             <span 
@@ -273,21 +206,12 @@ export const SearchSettings: React.FC = () => {
             >
               •
             </span>
-            <span>최대 결과 수를 줄이면 메모리 사용량이 감소합니다</span>
-          </div>
-          <div className="flex items-start space-x-2">
-            <span 
-              className="mt-0.5"
-              style={{ color: 'var(--color-accent, #3b82f6)' }}
-            >
-              •
-            </span>
-            <span>대소문자 구분을 비활성화하면 더 많은 결과를 찾을 수 있습니다</span>
+            <span>{t('settings.searchTip2')}</span>
           </div>
         </div>
       </div>
 
-      {/* 고급 검색 기능 (향후 확장용) */}
+      {/* 고급 검색 기능 (향후 확장용) - Phase 2 예정 기능이므로 주석 처리
       <div 
         className="border-t pt-6"
         style={{ borderColor: 'var(--color-border-primary, #e5e7eb)' }}
@@ -314,6 +238,7 @@ export const SearchSettings: React.FC = () => {
           </p>
         </div>
       </div>
+      */}
     </div>
   );
 };
