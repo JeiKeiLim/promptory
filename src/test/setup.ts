@@ -10,6 +10,6 @@ import { vi } from 'vitest';
   electronAPI: {
     invoke: vi.fn(),
     on: vi.fn(),
-    removeListener: vi.fn()
-  }
+    removeListener: vi.fn(),
+  },
 };

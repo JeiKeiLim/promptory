@@ -34,13 +34,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     if (!validateChannel(channel, ALLOWED_EVENTS)) {
       throw new Error(`Unauthorized event channel: ${channel}`);
     }
-    
+
     const subscription = (_event: Electron.IpcRendererEvent, ...args: any[]) => {
       callback(...args);
     };
-    
+
     ipcRenderer.on(channel, subscription);
-    
+
     // 구독 해제 함수 반환
     return () => {
       ipcRenderer.removeListener(channel, subscription);
@@ -78,9 +78,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     maximize: () => ipcRenderer.invoke('window:maximize'),
     close: () => ipcRenderer.invoke('window:close'),
     center: () => ipcRenderer.invoke('window:center'),
-    setSize: (width: number, height: number) => ipcRenderer.invoke('window:set-size', width, height),
-    getState: () => ipcRenderer.invoke('window:get-state')
-  }
+    setSize: (width: number, height: number) =>
+      ipcRenderer.invoke('window:set-size', width, height),
+    getState: () => ipcRenderer.invoke('window:get-state'),
+  },
 });
 
 // 타입 정의를 위한 전역 인터페이스 확장

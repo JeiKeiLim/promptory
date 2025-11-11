@@ -7,6 +7,7 @@ import type { PromptFile, PromptParameter } from '@shared/types/prompt';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import { toast } from '@renderer/components/common/ToastContainer';
+import { useAppStore } from '@renderer/stores/useAppStore';
 
 interface ParameterInputModalProps {
   prompt: PromptFile;
@@ -24,12 +25,13 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
   onClose
 }) => {
   const { t } = useTranslation();
+  const { settings } = useAppStore();
   const [parameterValues, setParameterValues] = useState<ParameterValues>({});
   const [processedContent, setProcessedContent] = useState('');
-  const [autoClose, setAutoClose] = useState(true);
+  const [autoClose, setAutoClose] = useState(settings.autoCloseModal);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 모달이 열릴 때 파라미터 값 초기화
+  // 모달이 열릴 때 파라미터 값 및 autoClose 상태 초기화
   useEffect(() => {
     if (isOpen && prompt) {
       const initialValues: ParameterValues = {};
@@ -37,8 +39,9 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
         initialValues[param.name] = '';
       });
       setParameterValues(initialValues);
+      setAutoClose(settings.autoCloseModal); // 전역 설정에서 autoClose 상태 초기화
     }
-  }, [isOpen, prompt]);
+  }, [isOpen, prompt, settings.autoCloseModal]);
 
   // 파라미터 값이 변경될 때마다 실시간으로 프롬프트 내용 업데이트
   useEffect(() => {
@@ -130,7 +133,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
       document.addEventListener('keydown', handleKeyDown, true);
       return () => document.removeEventListener('keydown', handleKeyDown, true);
     }
-  }, [isOpen, onClose, processedContent, parameterValues, prompt]);
+  }, [isOpen, onClose, processedContent, parameterValues, prompt, autoClose]);
 
   if (!isOpen) return null;
 
