@@ -36,7 +36,7 @@ const getSettingsPath = () => join(app.getPath('userData'), 'settings.json');
 async function saveSettings(): Promise<void> {
   try {
     const settings = {
-      projectPath: currentProjectPath
+      projectPath: currentProjectPath,
     };
     await fs.writeFile(getSettingsPath(), JSON.stringify(settings, null, 2), 'utf-8');
     console.log('Settings saved:', settings);
@@ -74,7 +74,7 @@ function createMainWindow(): BrowserWindow {
       nodeIntegration: false, // 보안을 위해 비활성화
       contextIsolation: true, // Context Isolation 활성화
       preload: join(__dirname, '../preload/preload.js'), // Preload 스크립트
-      webSecurity: !isDev // 개발 환경에서만 웹 보안 비활성화
+      webSecurity: !isDev, // 개발 환경에서만 웹 보안 비활성화
     },
     frame: false, // 네이티브 프레임 제거
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden', // macOS는 기본 버튼 표시
@@ -82,16 +82,16 @@ function createMainWindow(): BrowserWindow {
       titleBarOverlay: {
         color: '#ffffff',
         symbolColor: '#000000',
-        height: 40
-      }
+        height: 40,
+      },
     }),
-    show: false // 준비될 때까지 숨김
+    show: false, // 준비될 때까지 숨김
   });
 
   // 윈도우가 준비되면 표시
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
-    
+
     // 개발 환경에서는 개발자 도구 열기
     if (isDev) {
       mainWindow?.webContents.openDevTools();
@@ -127,65 +127,71 @@ function createMainWindow(): BrowserWindow {
  */
 function registerIpcHandlers(): void {
   // 테스트용 ping/pong 핸들러
-  ipcMain.handle(IPC_CHANNELS.PING, async (_event, request: PingRequest): Promise<IpcResponse<PongResponse>> => {
-    try {
-      const response: PongResponse = {
-        message: `Pong: ${request.message}`,
-        timestamp: new Date().toISOString()
-      };
+  ipcMain.handle(
+    IPC_CHANNELS.PING,
+    async (_event, request: PingRequest): Promise<IpcResponse<PongResponse>> => {
+      try {
+        const response: PongResponse = {
+          message: `Pong: ${request.message}`,
+          timestamp: new Date().toISOString(),
+        };
 
-      return {
-        success: true,
-        data: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'PING_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString()
-        }
-      };
+        return {
+          success: true,
+          data: response,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: {
+            code: 'PING_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          },
+        };
+      }
     }
-  });
+  );
 
   // 다이얼로그 핸들러 등록
   registerDialogHandlers();
-  
+
   // 프로젝트 경로 설정 핸들러
-  ipcMain.handle(IPC_CHANNELS.SETTINGS_SET_PROJECT_PATH, async (_event, path: string): Promise<IpcResponse<void>> => {
-    try {
-      currentProjectPath = path;
-      await saveSettings();
-      
-      // FileService와 FileWatcher를 새 경로로 재초기화
-      const projectPath = currentProjectPath || join(homedir(), 'Promptory');
-      await setFileService(projectPath);
-      if (mainWindow) {
-        await initializeFileWatcher(projectPath, mainWindow);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error('SETTINGS_SET_PROJECT_PATH error:', error);
-      return {
-        success: false,
-        error: {
-          code: 'SETTINGS_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to set project path',
-          timestamp: new Date().toISOString()
+  ipcMain.handle(
+    IPC_CHANNELS.SETTINGS_SET_PROJECT_PATH,
+    async (_event, path: string): Promise<IpcResponse<void>> => {
+      try {
+        currentProjectPath = path;
+        await saveSettings();
+
+        // FileService와 FileWatcher를 새 경로로 재초기화
+        const projectPath = currentProjectPath || join(homedir(), 'Promptory');
+        await setFileService(projectPath);
+        if (mainWindow) {
+          await initializeFileWatcher(projectPath, mainWindow);
         }
-      };
+
+        return { success: true };
+      } catch (error) {
+        console.error('SETTINGS_SET_PROJECT_PATH error:', error);
+        return {
+          success: false,
+          error: {
+            code: 'SETTINGS_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to set project path',
+            timestamp: new Date().toISOString(),
+          },
+        };
+      }
     }
-  });
-  
+  );
+
   // 프로젝트 경로 가져오기 핸들러
   ipcMain.handle(IPC_CHANNELS.SETTINGS_GET_PROJECT_PATH, async (): Promise<IpcResponse<string>> => {
     try {
       return {
         success: true,
-        data: currentProjectPath || join(homedir(), 'Promptory')
+        data: currentProjectPath || join(homedir(), 'Promptory'),
       };
     } catch (error) {
       console.error('SETTINGS_GET_PROJECT_PATH error:', error);
@@ -194,8 +200,8 @@ function registerIpcHandlers(): void {
         error: {
           code: 'SETTINGS_ERROR',
           message: error instanceof Error ? error.message : 'Failed to get project path',
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     }
   });
@@ -210,27 +216,27 @@ async function initializeDefaultProject(mainWindow: BrowserWindow): Promise<void
   try {
     // 저장된 설정 로드 (이미 앱 시작 시 로드됨)
     // currentProjectPath가 설정되어 있음
-    
+
     // 기본 프로젝트 경로 (~/Promptory)
     const projectPath = currentProjectPath || join(homedir(), 'Promptory');
-    
+
     console.log('Initializing project with path:', projectPath);
-    
+
     // 파일 서비스 초기화
     await setFileService(projectPath);
-    
+
     // 렌더러가 로드될 때까지 대기
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       if (mainWindow.webContents.isLoading()) {
         mainWindow.webContents.once('did-finish-load', () => resolve());
       } else {
         resolve();
       }
     });
-    
+
     // 파일 감시 서비스 초기화
     await initializeFileWatcher(projectPath, mainWindow);
-    
+
     console.log('Project initialized successfully');
   } catch (error) {
     console.error('Failed to initialize default project:', error);
@@ -272,18 +278,18 @@ async function initializeApp(): Promise<void> {
   try {
     // Electron 앱이 준비될 때까지 대기
     await app.whenReady();
-    
+
     console.log('Electron app is ready');
-    
+
     // 저장된 설정 로드 (가장 먼저 실행)
     await loadSettings();
-    
+
     // IPC 핸들러 등록
     registerIpcHandlers();
-    
+
     // 윈도우 제어 핸들러 등록
     registerWindowHandlers();
-    
+
     // 앱 이벤트 핸들러 등록
     registerAppHandlers();
 
@@ -292,9 +298,8 @@ async function initializeApp(): Promise<void> {
 
     // 기본 프로젝트 초기화 (윈도우 생성 후)
     await initializeDefaultProject(mainWindow);
-    
+
     console.log('Main window created');
-    
   } catch (error) {
     console.error('Failed to initialize app:', error);
     app.quit();
@@ -305,7 +310,7 @@ async function initializeApp(): Promise<void> {
 initializeApp();
 
 // 예상치 못한 오류 처리
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('Uncaught Exception:', error);
 });
 

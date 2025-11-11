@@ -12,14 +12,14 @@ import './styles/globals.css';
 const App: React.FC = () => {
   const { updateSettings, settings } = useAppStore();
   const { i18n } = useTranslation();
-  
+
   // 언어 설정 동기화
   useEffect(() => {
     if (settings.language) {
       i18n.changeLanguage(settings.language);
     }
   }, [settings.language, i18n]);
-  
+
   // 앱 시작 시 메인 프로세스의 프로젝트 경로와 동기화
   useEffect(() => {
     const syncProjectPath = async () => {
@@ -34,10 +34,10 @@ const App: React.FC = () => {
         console.error('Failed to sync project path:', error);
       }
     };
-    
+
     syncProjectPath();
   }, [updateSettings]);
-  
+
   return <Layout />;
 };
 
