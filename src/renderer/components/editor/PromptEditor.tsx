@@ -2,12 +2,13 @@
  * Monaco Editor 기반 프롬프트 편집기
  */
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import Editor from '@monaco-editor/react';
 import { marked } from 'marked';
 import { parseParameters, convertToPromptParameters } from '@renderer/utils/parameterParser';
 import { ParameterEditor } from '@renderer/components/parameter/ParameterEditor';
 import { useTranslation } from 'react-i18next';
+import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
 
 // Monaco Editor 타입 정의
 type MonacoEditor = Parameters<NonNullable<React.ComponentProps<typeof Editor>['onMount']>>[0];
@@ -27,13 +28,18 @@ interface PromptEditorProps {
   isNewPrompt?: boolean; // 새 프롬프트 생성 모드
   onSave?: (updatedPrompt: PromptFile) => void;
   onCancel?: () => void;
+  searchContext?: {
+    query: string;
+    isActive: boolean;
+  };
 }
 
 export const PromptEditor: React.FC<PromptEditorProps> = ({
   prompt,
   isNewPrompt = false,
   onSave,
-  onCancel
+  onCancel,
+  searchContext
 }) => {
   const { t } = useTranslation();
   // 메타데이터 상태
@@ -222,6 +228,24 @@ ${t('editor.exampleContent')}
 
   // 앱 설정 가져오기
   const { settings } = useAppStore();
+  
+  // 태그 하이라이트 활성화 조건 체크
+  const searchQuery = searchContext?.query || '';
+  const isSearchActive = searchContext?.isActive || false;
+  
+  const highlightCheckResult = useMemo(
+    () => shouldHighlightTags(isSearchActive, settings, searchQuery),
+    [isSearchActive, settings, searchQuery]
+  );
+
+  // 태그 하이라이트 함수
+  const highlightTagIfNeeded = useCallback(
+    (tag: string) => {
+      if (!highlightCheckResult.shouldHighlight) return tag;
+      return highlightText(tag, searchQuery);
+    },
+    [highlightCheckResult, searchQuery]
+  );
   
   // Monaco 에디터 옵션 (설정값 적용)
   const editorOptions = useMemo(() => ({
@@ -737,7 +761,7 @@ parameters:${parameters.length === 0 ? ' []' : ''}${parameters.map(param => `
                               key={tag}
                               className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
                             >
-                              #{tag}
+                              #{highlightTagIfNeeded(tag)}
                               <button
                                 type="button"
                                 onClick={() => setTags(tags.filter(t => t !== tag))}
