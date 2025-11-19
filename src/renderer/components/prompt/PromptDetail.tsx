@@ -2,7 +2,7 @@
  * 프롬프트 상세 보기 컴포넌트
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { PromptFile } from '@shared/types/prompt';
 import { PromptEditor } from '@renderer/components/editor/PromptEditor';
 import { ParameterInputModal } from '@renderer/components/prompt/ParameterInputModal';
@@ -10,18 +10,41 @@ import { useAppStore } from '@renderer/stores/useAppStore';
 import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { useTranslation } from 'react-i18next';
+import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
 
 interface PromptDetailProps {
   prompt: PromptFile | null; // 새 프롬프트 생성 시 null 허용
+  searchContext?: {
+    query: string;
+    isActive: boolean;
+  };
 }
 
-export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
+export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt, searchContext }) => {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState(prompt);
   const [showParameterModal, setShowParameterModal] = useState(false);
-  const { editingPromptId, setEditingPrompt } = useAppStore();
+  const { editingPromptId, setEditingPrompt, settings } = useAppStore();
   const { selectPrompt } = usePromptStore();
+
+  // 태그 하이라이트 활성화 조건 체크
+  const searchQuery = searchContext?.query || '';
+  const isSearchActive = searchContext?.isActive || false;
+  
+  const highlightCheckResult = useMemo(
+    () => shouldHighlightTags(isSearchActive, settings, searchQuery),
+    [isSearchActive, settings, searchQuery]
+  );
+
+  // 태그 하이라이트 함수
+  const highlightTagIfNeeded = useCallback(
+    (tag: string) => {
+      if (!highlightCheckResult.shouldHighlight) return tag;
+      return highlightText(tag, searchQuery);
+    },
+    [highlightCheckResult, searchQuery]
+  );
 
   // 키보드 단축키로 파라미터 모달 열기 이벤트 처리
   useEffect(() => {
@@ -221,7 +244,7 @@ export const PromptDetail: React.FC<PromptDetailProps> = ({ prompt }) => {
                 key={tag}
                 className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
               >
-                {tag}
+                {highlightTagIfNeeded(tag)}
               </span>
             ))}
           </div>

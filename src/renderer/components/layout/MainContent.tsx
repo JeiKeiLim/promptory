@@ -2,12 +2,13 @@
  * 중앙 메인 콘텐츠 (프롬프트 목록)
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { SearchBar } from '@renderer/components/search/SearchBar';
 import { useTranslation } from 'react-i18next';
+import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
 
 export const MainContent: React.FC = () => {
   const { t } = useTranslation();
@@ -45,6 +46,21 @@ export const MainContent: React.FC = () => {
       ) : part
     );
   }, [isSearchActive, settings.search]);
+
+  // 태그 하이라이트 활성화 조건 체크 (메모이제이션)
+  const highlightCheckResult = useMemo(
+    () => shouldHighlightTags(isSearchActive, settings, searchQuery),
+    [isSearchActive, settings, searchQuery]
+  );
+
+  // 태그 텍스트 하이라이트 함수 (메모이제이션)
+  const highlightTagText = useCallback(
+    (text: string) => {
+      if (!highlightCheckResult.shouldHighlight) return text;
+      return highlightText(text, searchQuery);
+    },
+    [highlightCheckResult, searchQuery]
+  );
 
   // 검색 결과 콜백 함수 메모이제이션
   const handleSearchResults = useCallback((results: any[], hasQuery: boolean, query: string) => {
@@ -231,7 +247,7 @@ export const MainContent: React.FC = () => {
                       {prompt.metadata.tags.length > 0 && (
                         <>
                           <span className="mx-2">•</span>
-                          <span>{prompt.metadata.tags.slice(0, 2).join(', ')}</span>
+                          <span>{highlightTagText(prompt.metadata.tags.slice(0, 2).join(', '))}</span>
                           {prompt.metadata.tags.length > 2 && (
                             <span> +{prompt.metadata.tags.length - 2}</span>
                           )}
