@@ -91,7 +91,7 @@ export interface AppStore {
   // 설정창
   settingsModal: {
     isOpen: boolean;
-    activeTab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window';
+    activeTab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm';
   };
   
   // 설정
@@ -126,9 +126,9 @@ export interface AppStore {
   hideConfirmDialog: () => void;
   
   // 설정창 관리
-  showSettingsModal: (tab?: 'general' | 'editor' | 'search' | 'shortcuts' | 'window') => void;
+  showSettingsModal: (tab?: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm') => void;
   hideSettingsModal: () => void;
-  setSettingsTab: (tab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window') => void;
+  setSettingsTab: (tab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm') => void;
   
   // 설정 관리
   updateSettings: (settings: Partial<AppSettings>) => void;

@@ -10,6 +10,7 @@ import { EditorSettings } from './EditorSettings';
 import { SearchSettings } from './SearchSettings';
 import { ShortcutSettings } from './ShortcutSettings';
 import { WindowSettings } from './WindowSettings';
+import { LLMSettings } from './LLMSettings';
 import { useTranslation } from 'react-i18next';
 
 export const SettingsModal: React.FC = () => {
@@ -23,7 +24,8 @@ export const SettingsModal: React.FC = () => {
     { id: 'editor', label: t('settings.editor'), icon: '📝' },
     { id: 'search', label: t('settings.search'), icon: '🔍' },
     { id: 'shortcuts', label: t('settings.shortcuts'), icon: '⌨️' },
-    { id: 'window', label: t('settings.window'), icon: '🖥️' }
+    { id: 'window', label: t('settings.window'), icon: '🖥️' },
+    { id: 'llm', label: t('settings.llm'), icon: '🤖' }
   ] as const;
 
   const renderTabContent = () => {
@@ -38,6 +40,8 @@ export const SettingsModal: React.FC = () => {
         return <ShortcutSettings />;
       case 'window':
         return <WindowSettings />;
+      case 'llm':
+        return <LLMSettings />;
       default:
         return <GeneralSettings />;
     }

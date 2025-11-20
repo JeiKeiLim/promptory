@@ -9,6 +9,7 @@ import { toast } from '@renderer/components/common/ToastContainer';
 import { SearchBar } from '@renderer/components/search/SearchBar';
 import { useTranslation } from 'react-i18next';
 import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
+import { LLMBadge } from '@renderer/components/llm/LLMBadge';
 
 export const MainContent: React.FC = () => {
   const { t } = useTranslation();
@@ -234,9 +235,12 @@ export const MainContent: React.FC = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {highlightMatch(prompt.metadata.title, searchQuery)}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {highlightMatch(prompt.metadata.title, searchQuery)}
+                      </h3>
+                      <LLMBadge promptId={prompt.id} />
+                    </div>
                     {prompt.metadata.description && (
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                         {highlightMatch(prompt.metadata.description, searchQuery)}

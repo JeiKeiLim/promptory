@@ -11,6 +11,7 @@ import './handlers/fileHandlers';
 import { setFileService } from './handlers/fileHandlers';
 import { registerWindowHandlers } from './handlers/windowHandlers';
 import { registerDialogHandlers } from './handlers/dialogHandlers';
+import { initializeLLMHandlers, cleanupOnQuit } from './handlers/llmHandlers';
 import { initializeFileWatcher, disposeFileWatcher } from './services/FileWatcherService';
 import { UpdateService } from './services/UpdateService';
 import { homedir } from 'os';
@@ -85,39 +86,16 @@ function createMainWindow(): BrowserWindow {
         height: 40,
       },
     }),
-    show: false, // 준비될 때까지 숨김
+    show: false, // Don't show until all handlers are registered
   });
 
-  // 윈도우가 준비되면 표시
-  mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
-
-    // 개발 환경에서는 개발자 도구 열기
-    if (isDev) {
-      mainWindow?.webContents.openDevTools();
-    }
-  });
-
-  // 개발 환경에서는 Vite 개발 서버에 연결
-  if (isDev) {
-    // Vite 개발 서버 포트를 동적으로 찾거나 기본 포트 사용
-    const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
-    console.log('Loading development server:', devServerUrl);
-    mainWindow.loadURL(devServerUrl);
-  } else {
-    // 프로덕션에서는 빌드된 파일 로드
-    const indexPath = join(__dirname, '../renderer/index.html');
-    console.log('Loading production file:', indexPath);
-    mainWindow.loadFile(indexPath);
-  }
+  // Note: Page will be loaded after all handlers are registered (see initializeApp)
+  // Don't load URL/file here - that would start the renderer before handlers are ready
 
   // 윈도우 닫힘 처리
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
-  // 자동 업데이트 서비스 초기화
-  updateService = new UpdateService(mainWindow);
 
   return mainWindow;
 }
@@ -266,6 +244,8 @@ function registerAppHandlers(): void {
   // 앱 종료 전 정리 작업
   app.on('before-quit', async () => {
     console.log('App is quitting...');
+    // LLM 핸들러 정리 (pending/in-progress requests cancellation)
+    await cleanupOnQuit();
     // 파일 감시 서비스 정리
     await disposeFileWatcher();
   });
@@ -299,7 +279,37 @@ async function initializeApp(): Promise<void> {
     // 기본 프로젝트 초기화 (윈도우 생성 후)
     await initializeDefaultProject(mainWindow);
 
-    console.log('Main window created');
+    // LLM 핸들러 초기화 (프로젝트 초기화 후에 실행하여 currentProjectPath가 설정되도록)
+    const projectPath = currentProjectPath || join(homedir(), 'Promptory');
+    // Store LLM database in workspace directory for consistency with cache.db and results
+    const dbPath = join(projectPath, '.promptory', 'llm.db');
+    const resultsPath = join(projectPath, '.promptory', 'llm_results');
+    await initializeLLMHandlers(dbPath, resultsPath, mainWindow);
+    console.log('LLM handlers initialized with db path:', dbPath, 'results path:', resultsPath);
+
+    // NOW load the page after all handlers are registered
+    if (isDev) {
+      const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+      console.log('Loading development server:', devServerUrl);
+      await mainWindow.loadURL(devServerUrl);
+    } else {
+      const indexPath = join(__dirname, '../renderer/index.html');
+      console.log('Loading production file:', indexPath);
+      await mainWindow.loadFile(indexPath);
+    }
+
+    // 자동 업데이트 서비스 초기화
+    updateService = new UpdateService(mainWindow);
+
+    // Show the window after page is loaded
+    mainWindow.show();
+    
+    // 개발 환경에서는 개발자 도구 열기
+    if (isDev) {
+      mainWindow.webContents.openDevTools();
+    }
+
+    console.log('Main window created, loaded, and shown');
   } catch (error) {
     console.error('Failed to initialize app:', error);
     app.quit();

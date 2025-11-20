@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { useTranslation } from 'react-i18next';
+import { LLMQueueIndicator } from '@renderer/components/llm/LLMQueueIndicator';
 
 export const TitleBar: React.FC = () => {
   const { t } = useTranslation();
@@ -44,13 +45,18 @@ export const TitleBar: React.FC = () => {
           {/* 좌측: macOS 창 조절 아이콘을 위한 여백 */}
           <div className="w-20"></div>
           
-          {/* 중앙: 앱 정보 */}
+          {/* 중앙: 앱 정보 + 큐 인디케이터 */}
           <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
-                <span className="text-white text-xs font-bold">P</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-md flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">P</span>
+                </div>
+                <span className="text-sm font-medium theme-text-primary">Promptory</span>
               </div>
-              <span className="text-sm font-medium theme-text-primary">Promptory</span>
+              <div style={{ WebkitAppRegion: 'no-drag' }}>
+                <LLMQueueIndicator />
+              </div>
             </div>
           </div>
           
@@ -81,8 +87,12 @@ export const TitleBar: React.FC = () => {
             </div>
           </div>
 
-          {/* 중앙: 빈 공간 */}
-          <div className="flex-1"></div>
+          {/* 중앙: 큐 인디케이터 */}
+          <div className="flex-1 flex items-center justify-center">
+            <div style={{ WebkitAppRegion: 'no-drag' }}>
+              <LLMQueueIndicator />
+            </div>
+          </div>
 
           {/* 우측: 컨트롤 버튼 */}
           <div 

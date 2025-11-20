@@ -5,13 +5,20 @@
 import React, { useEffect } from 'react';
 import { Layout } from '@renderer/components/layout/Layout';
 import { useAppStore } from '@renderer/stores/useAppStore';
+import { useLLMStore } from '@renderer/stores/useLLMStore';
 import { useTranslation } from 'react-i18next';
+import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
+import { useLLMEvents } from '@renderer/hooks/useLLMEvents';
 import './i18n'; // i18n 초기화
 import './styles/globals.css';
 
 const App: React.FC = () => {
   const { updateSettings, settings } = useAppStore();
+  const { setProviders, setActiveProvider } = useLLMStore();
   const { i18n } = useTranslation();
+  
+  // Set up LLM event listeners
+  useLLMEvents();
 
   // 언어 설정 동기화
   useEffect(() => {
@@ -37,6 +44,28 @@ const App: React.FC = () => {
 
     syncProjectPath();
   }, [updateSettings]);
+
+  // Load LLM providers on app startup
+  useEffect(() => {
+    const loadLLMProviders = async () => {
+      try {
+        const response = await window.electronAPI.invoke(IPC_CHANNELS.LLM_PROVIDER_LIST);
+        if (response.providers) {
+          console.log('Loaded LLM providers:', response.providers);
+          setProviders(response.providers);
+          const active = response.providers.find((p: any) => p.isActive);
+          if (active) {
+            console.log('Active provider:', active);
+            setActiveProvider(active);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load LLM providers:', error);
+      }
+    };
+
+    loadLLMProviders();
+  }, [setProviders, setActiveProvider]);
 
   return <Layout />;
 };

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Electron build outputs
+release/
+out/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Test files (if not linting tests)
+# tests/
+
+# Auto-generated files
+*.auto.ts
+*.auto.js
+
+# TypeScript build info
+*.tsbuildinfo
+
+# ESLint cache
+.eslintcache
+
+# Logs
+*.log
+logs/
+
