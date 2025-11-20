@@ -2,12 +2,16 @@
  * 파라미터 입력 모달 - 프롬프트 사용 기능의 핵심 컴포넌트
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { PromptFile, PromptParameter } from '@shared/types/prompt';
 import { useTranslation } from 'react-i18next';
 import { marked } from 'marked';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { useAppStore } from '@renderer/stores/useAppStore';
+import { useLLMStore } from '@renderer/stores/useLLMStore';
+import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
+import { LLMResponsePanel } from '@renderer/components/llm/LLMResponsePanel';
+import { LLMBadge } from '@renderer/components/llm/LLMBadge';
 
 interface ParameterInputModalProps {
   prompt: PromptFile;
@@ -26,10 +30,21 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { settings } = useAppStore();
+  const { activeProvider, queueSize } = useLLMStore();
   const [parameterValues, setParameterValues] = useState<ParameterValues>({});
   const [processedContent, setProcessedContent] = useState('');
   const [autoClose, setAutoClose] = useState(settings.autoCloseModal);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCallingLLM, setIsCallingLLM] = useState(false);
+  const [showResponsePanel, setShowResponsePanel] = useState(false);
+  const [selectedResponseForView, setSelectedResponseForView] = useState<{id: string; content: string} | null>(null);
+
+  // Reset panel state when modal closes
+  const handleCloseModal = useCallback(() => {
+    setShowResponsePanel(false);
+    setSelectedResponseForView(null);
+    onClose();
+  }, [onClose]);
 
   // 모달이 열릴 때 파라미터 값 및 autoClose 상태 초기화
   useEffect(() => {
@@ -40,6 +55,10 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
       });
       setParameterValues(initialValues);
       setAutoClose(settings.autoCloseModal); // 전역 설정에서 autoClose 상태 초기화
+      
+      // Reset response panel state when modal opens
+      setShowResponsePanel(false);
+      setSelectedResponseForView(null);
     }
   }, [isOpen, prompt, settings.autoCloseModal]);
 
@@ -109,6 +128,45 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
     }
   };
 
+  // LLM 호출 핸들러
+  const handleCallLLM = async () => {
+    if (!validateRequiredParameters()) {
+      return;
+    }
+
+    if (!activeProvider) {
+      toast.error(t('llm.errors.noActiveProvider'));
+      return;
+    }
+
+    if (!processedContent.trim()) {
+      toast.error(t('parameterInputModal.emptyContent'));
+      return;
+    }
+
+    setIsCallingLLM(true);
+    try {
+      const response = await window.electronAPI.invoke(IPC_CHANNELS.LLM_CALL, {
+        promptId: prompt.id,
+        promptName: prompt.metadata.title, // For human-readable directory names
+        promptContent: processedContent,
+        parameters: parameterValues
+      });
+
+      if (response.success) {
+        toast.success(t('llm.call.queued'));
+        // Don't close modal - user may want to make more calls or see results
+      } else {
+        toast.error(response.error || t('llm.errors.callFailed'));
+      }
+    } catch (error) {
+      console.error('LLM call failed:', error);
+      toast.error(t('llm.errors.callFailed'));
+    } finally {
+      setIsCallingLLM(false);
+    }
+  };
+
   // 키보드 단축키 처리 (ESC 및 Cmd+Shift+C)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -139,7 +197,9 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+      <div className={`bg-white rounded-lg shadow-xl w-full max-h-[90vh] flex flex-col transition-all duration-300 ${
+        showResponsePanel ? 'max-w-[90vw]' : 'max-w-6xl'
+      }`}>
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -147,7 +207,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
             <p className="text-sm text-gray-600 mt-1">{prompt.metadata.title}</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="text-gray-400 hover:text-gray-600 text-2xl font-light"
           >
             ×
@@ -155,19 +215,52 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
         </div>
 
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 flex min-h-0">
-          {/* 좌측: 파라미터 입력 */}
-          <div className="w-1/2 p-6 border-r border-gray-200 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.parameterInput')}</h3>
-            
-            {prompt.metadata.parameters.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-2">📝</div>
-                <p>{t('parameterInputModal.noParams')}</p>
-                <p className="text-sm mt-1">{t('parameterInputModal.copyDirectly')}</p>
+        <div className="flex-1 flex min-h-0 relative">
+          {/* 좌측: 파라미터 입력 OR 응답 전체 보기 (takes full left when viewing response) */}
+          <div className={`p-6 border-r border-gray-200 overflow-y-auto transition-all duration-300 ${
+            selectedResponseForView 
+              ? (showResponsePanel ? 'w-2/3' : 'w-full')  // Full response takes 2/3 when sidebar open, full width when closed
+              : (showResponsePanel ? 'w-1/3' : 'w-1/2')   // Parameters take 1/3 when sidebar open, 1/2 when closed
+          }`}>
+            {selectedResponseForView ? (
+              // Show full response (takes full left side)
+              <div className="h-full flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">{t('llm.response.content')}</h3>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(selectedResponseForView.content);
+                        toast.success(t('llm.response.copiedToClipboard'));
+                      } catch (error) {
+                        toast.error(t('llm.errors.copyFailed'));
+                      }
+                    }}
+                    className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    📋 {t('llm.response.copy')}
+                  </button>
+                </div>
+                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-y-auto">
+                  <div 
+                    className="prose prose-sm max-w-none text-gray-800"
+                    dangerouslySetInnerHTML={{ __html: marked(selectedResponseForView.content) }}
+                  />
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              // Show parameter inputs
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.parameterInput')}</h3>
+                
+                {prompt.metadata.parameters.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-4xl mb-2">📝</div>
+                    <p>{t('parameterInputModal.noParams')}</p>
+                    <p className="text-sm mt-1">{t('parameterInputModal.copyDirectly')}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                 {prompt.metadata.parameters.map((param) => (
                   <div key={param.name} className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
@@ -203,19 +296,48 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                     )}
                   </div>
                 ))}
-              </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* 우측: 실시간 미리보기 */}
-          <div className="w-1/2 p-6 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.preview')}</h3>
-            
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[400px]">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
-                {processedContent}
-              </pre>
+          {/* 중앙: 실시간 미리보기 (hidden when viewing response) */}
+          {!selectedResponseForView && (
+            <div className={`p-6 overflow-y-auto transition-all duration-300 ${
+              showResponsePanel ? 'w-1/3 border-r border-gray-200' : 'w-1/2'
+            }`}>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('parameterInputModal.preview')}</h3>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[400px]">
+                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+                  {processedContent}
+                </pre>
+              </div>
             </div>
+          )}
+
+          {/* 우측: LLM Response Panel (slides in) */}
+          <div className={`transition-all duration-300 overflow-hidden ${
+            showResponsePanel ? 'w-1/3' : 'w-0'
+          }`}>
+            {showResponsePanel && (
+              <div className="h-full p-4 overflow-y-auto bg-gray-50">
+                <LLMResponsePanel
+                  promptId={prompt.id}
+                  isOpen={showResponsePanel}
+                  onClose={() => {
+                    setShowResponsePanel(false);
+                    setSelectedResponseForView(null);
+                  }}
+                  onSelectResponse={(id: string, content: string) => {
+                    setSelectedResponseForView({ id, content });
+                  }}
+                  selectedResponseId={selectedResponseForView?.id || null}
+                  onBackToParameters={() => setSelectedResponseForView(null)}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -234,15 +356,62 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
           </div>
           
           <div className="flex items-center space-x-3">
+            {/* Badge indicators */}
+            <div className="flex items-center space-x-3">
+              {/* New results badge for THIS prompt */}
+              <LLMBadge promptId={prompt.id} />
+              
+              {/* Global queue indicator */}
+              {queueSize > 0 && (
+                <span className="text-sm text-gray-600">
+                  {t('llm.queue.size', { count: queueSize })}
+                </span>
+              )}
+            </div>
+            
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
               {t('confirm.cancel')}
             </button>
+            
+            {activeProvider && (
+              <>
+                <button
+                  onClick={() => {
+                    setShowResponsePanel(!showResponsePanel);
+                    // Also reset full response view when toggling
+                    if (showResponsePanel) {
+                      setSelectedResponseForView(null);
+                    }
+                  }}
+                  className={`px-4 py-2 text-sm border rounded-md transition-colors flex items-center space-x-2 ${
+                    showResponsePanel 
+                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                  title={t('llm.response.viewResponses')}
+                >
+                  <span>📋</span>
+                  <span>{t('llm.response.viewResponses')}</span>
+                </button>
+                
+                <button
+                  onClick={handleCallLLM}
+                  disabled={isCallingLLM || isLoading}
+                  className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                  title={t('llm.call.callLLM')}
+                >
+                  <span>🤖</span>
+                  <span>{isCallingLLM ? t('llm.call.calling') : t('llm.call.callLLM')}</span>
+                </button>
+              </>
+            )}
+            
             <button
               onClick={handleCopyWithValidation}
-              disabled={isLoading}
+              disabled={isLoading || isCallingLLM}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? t('parameterInputModal.copying') : t('parameterInputModal.copyToClipboard')}

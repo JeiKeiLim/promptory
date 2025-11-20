@@ -48,6 +48,33 @@ export const IPC_CHANNELS = {
   WINDOW_SET_SIZE: 'window:set-size',
   WINDOW_GET_STATE: 'window:get-state',
   
+  // LLM Provider 관리
+  LLM_PROVIDER_LIST: 'llm:provider:list',
+  LLM_PROVIDER_SAVE: 'llm:provider:save',
+  LLM_PROVIDER_SET_ACTIVE: 'llm:provider:setActive',
+  LLM_PROVIDER_DELETE: 'llm:provider:delete',
+  LLM_PROVIDER_VALIDATE: 'llm:provider:validate',
+  
+  // LLM 요청/응답
+  LLM_CALL: 'llm:call',
+  LLM_CANCEL: 'llm:cancel',
+  LLM_CANCEL_ALL: 'llm:cancelAll',
+  LLM_GET_HISTORY: 'llm:getHistory',
+  LLM_GET_RESPONSE: 'llm:getResponse',
+  LLM_DELETE_RESPONSE: 'llm:deleteResponse',
+  LLM_DELETE_ALL_RESPONSES: 'llm:deleteAllResponses',
+  
+  // LLM 모델 관리
+  LLM_MODELS_LIST: 'llm:models:list',
+  
+  // LLM 큐 상태
+  LLM_GET_QUEUE_STATUS: 'llm:getQueueStatus',
+  
+  // LLM 이벤트 (메인 -> 렌더러)
+  LLM_RESPONSE_COMPLETE: 'llm:response:complete',
+  LLM_QUEUE_UPDATED: 'llm:queue:updated',
+  LLM_REQUEST_PROGRESS: 'llm:request:progress',
+  
   // 이벤트
   FILE_ERROR: 'file:error',
   
@@ -59,5 +86,8 @@ export const ALLOWED_CHANNELS = Object.values(IPC_CHANNELS);
 
 export const ALLOWED_EVENTS = [
   IPC_CHANNELS.FILE_CHANGED,
-  IPC_CHANNELS.FILE_ERROR
+  IPC_CHANNELS.FILE_ERROR,
+  IPC_CHANNELS.LLM_RESPONSE_COMPLETE,
+  IPC_CHANNELS.LLM_QUEUE_UPDATED,
+  IPC_CHANNELS.LLM_REQUEST_PROGRESS
 ];

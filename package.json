@@ -1,6 +1,6 @@
 {
   "name": "promptory",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "LLM Prompt 관리 데스크탑 애플리케이션",
   "main": "dist/main/main.js",
   "scripts": {
@@ -38,6 +38,7 @@
   "author": "Promptory Team",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.0.0",
     "@heroicons/react": "^2.1.0",
     "@monaco-editor/react": "^4.6.0",
@@ -47,6 +48,7 @@
     "i18next": "^25.6.0",
     "js-yaml": "^4.1.0",
     "marked": "^12.0.0",
+    "openai": "^6.9.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^16.0.0",
