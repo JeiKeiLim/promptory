@@ -72,27 +72,27 @@
 > - GREEN: Minimal implementation to pass
 > - REFACTOR: Improve design while keeping tests green
 
-- [ ] T017 [P] [US1] Write unit test for TitleGenerationService.generateTitle() in tests/unit/services/TitleGenerationService.test.ts (RED phase - test should FAIL)
-- [ ] T018 [P] [US1] Write unit test for title prompt template generation and word count validation (5-8 words) in tests/unit/services/TitleGenerationService.test.ts (RED phase)
-- [ ] T019 [P] [US1] Write unit test for title validation/truncation logic in tests/unit/services/TitleGenerationService.test.ts (RED phase)
-- [ ] T020 [P] [US1] Write integration test for complete title generation flow in tests/integration/title-generation-flow.test.ts (RED phase - test should FAIL)
-- [ ] T021 [P] [US1] Write integration test for title persistence in SQLite in tests/integration/title-generation-flow.test.ts (RED phase)
-- [ ] T022 [P] [US1] Write integration test for title persistence in markdown frontmatter in tests/integration/title-generation-flow.test.ts (RED phase)
-- [ ] T023 Run pnpm test to verify all new tests FAIL (RED phase confirmation)
+- [X] T017 [P] [US1] Write unit test for TitleGenerationService.generateTitle() in tests/unit/services/TitleGenerationService.test.ts (RED phase - test should FAIL)
+- [X] T018 [P] [US1] Write unit test for title prompt template generation and word count validation (5-8 words) in tests/unit/services/TitleGenerationService.test.ts (RED phase)
+- [X] T019 [P] [US1] Write unit test for title validation/truncation logic in tests/unit/services/TitleGenerationService.test.ts (RED phase)
+- [X] T020 [P] [US1] Write integration test for complete title generation flow in tests/integration/title-generation-flow.test.ts (RED phase - test should FAIL)
+- [X] T021 [P] [US1] Write integration test for title persistence in SQLite in tests/integration/title-generation-flow.test.ts (RED phase)
+- [X] T022 [P] [US1] Write integration test for title persistence in markdown frontmatter in tests/integration/title-generation-flow.test.ts (RED phase)
+- [X] T023 Run pnpm test to verify all new tests FAIL (RED phase confirmation)
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Create TitleGenerationService class in src/main/services/TitleGenerationService.ts with generateTitle() method (GREEN phase)
-- [ ] T024a [US1] Add timestamp logging for title generation duration in TitleGenerationService (start/end timestamps) to enable SC-002 measurement (95% complete within 30s)
-- [ ] T025 [US1] Implement title generation prompt templates (system and user prompts) in src/main/services/TitleGenerationService.ts
-- [ ] T026 [US1] Implement title validation (5-8 word count), truncation logic (>150 chars), and character limit enforcement in src/main/services/TitleGenerationService.ts
+- [X] T024 [US1] Create TitleGenerationService class in src/main/services/TitleGenerationService.ts with generateTitle() method (GREEN phase)
+- [X] T024a [US1] Add timestamp logging for title generation duration in TitleGenerationService (start/end timestamps) to enable SC-002 measurement (95% complete within 30s)
+- [X] T025 [US1] Implement title generation prompt templates (system and user prompts) in src/main/services/TitleGenerationService.ts
+- [X] T026 [US1] Implement title validation (5-8 word count), truncation logic (>150 chars), and character limit enforcement in src/main/services/TitleGenerationService.ts
 - [ ] T027 [US1] Integrate TitleGenerationService with existing provider infrastructure in src/main/services/TitleGenerationService.ts
 - [ ] T028 [US1] Implement timeout handling (30s default) in src/main/services/TitleGenerationService.ts
-- [ ] T029 Run pnpm test to verify unit tests PASS (GREEN phase confirmation)
-- [ ] T030 [US1] Extend LLMStorageService.saveResponse() in src/main/services/LLMStorageService.ts to save title fields to SQLite
-- [ ] T031 [US1] Extend FileService markdown writing in src/main/services/FileService.ts to include title fields in YAML frontmatter
-- [ ] T032 [US1] Extend FileService markdown reading in src/main/services/FileService.ts to parse title fields from YAML frontmatter
-- [ ] T033 Run pnpm test to verify integration tests PASS (GREEN phase confirmation)
+- [X] T029 Run pnpm test to verify unit tests PASS (GREEN phase confirmation)
+- [X] T030 [US1] Extend LLMStorageService.saveResponse() in src/main/services/LLMStorageService.ts to save title fields to SQLite
+- [X] T031 [US1] Extend FileService markdown writing in src/main/services/FileService.ts to include title fields in YAML frontmatter
+- [X] T032 [US1] Extend FileService markdown reading in src/main/services/FileService.ts to parse title fields from YAML frontmatter
+- [X] T033 Run pnpm test to verify integration tests PASS (GREEN phase confirmation)
 - [ ] T034 [US1] Integrate title generation as post-processing in RequestQueue in src/main/services/RequestQueue.ts (add postProcessing hook support)
 - [ ] T035 [US1] Add title generation call to LLM response completion handler in src/main/handlers/llmHandlers.ts
 - [ ] T036 Run pnpm test to verify all US1 tests PASS

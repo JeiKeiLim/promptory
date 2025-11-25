@@ -287,8 +287,9 @@ export class LLMStorageService {
         id, prompt_id, provider, model, parameters,
         created_at, response_time_ms,
         token_usage_prompt, token_usage_completion, token_usage_total,
-        cost_estimate, status, file_path, error_code, error_message
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        cost_estimate, status, file_path, error_code, error_message,
+        generated_title, title_generation_status, title_generated_at, title_model
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await this.runQuery(sql, [
@@ -306,7 +307,11 @@ export class LLMStorageService {
       metadata.status,
       metadata.filePath,
       metadata.errorCode || null,
-      metadata.errorMessage || null
+      metadata.errorMessage || null,
+      metadata.generatedTitle || null,
+      metadata.titleGenerationStatus || null,
+      metadata.titleGeneratedAt || null,
+      metadata.titleModel || null
     ]);
   }
 
@@ -317,6 +322,19 @@ export class LLMStorageService {
     );
 
     return row ? this.mapResponseMetadata(row) : null;
+  }
+
+  // T030: Convenience methods for saveResponse/getResponse (alias for saveResponseMetadata/getResponseMetadata)
+  async saveResponse(metadata: LLMResponseMetadata): Promise<void> {
+    return this.saveResponseMetadata(metadata);
+  }
+
+  async getResponse(id: string): Promise<LLMResponseMetadata | null> {
+    return this.getResponseMetadata(id);
+  }
+
+  async getResponseHistory(promptId: string): Promise<LLMResponseMetadata[]> {
+    return this.listResponseMetadata(promptId);
   }
 
   async listResponseMetadata(promptId: string): Promise<LLMResponseMetadata[]> {
@@ -447,6 +465,12 @@ export class LLMStorageService {
     if (row.cost_estimate) metadata.costEstimate = row.cost_estimate;
     if (row.error_code) metadata.errorCode = row.error_code;
     if (row.error_message) metadata.errorMessage = row.error_message;
+    
+    // T030: Map title fields
+    if (row.generated_title) metadata.generatedTitle = row.generated_title;
+    if (row.title_generation_status) metadata.titleGenerationStatus = row.title_generation_status;
+    if (row.title_generated_at) metadata.titleGeneratedAt = row.title_generated_at;
+    if (row.title_model) metadata.titleModel = row.title_model;
 
     return metadata;
   }
@@ -513,7 +537,12 @@ export class LLMStorageService {
       ...(metadata.costEstimate !== undefined && { cost_estimate: metadata.costEstimate }),
       status: metadata.status,
       ...(metadata.errorCode && { error_code: metadata.errorCode }),
-      ...(metadata.errorMessage && { error_message: metadata.errorMessage })
+      ...(metadata.errorMessage && { error_message: metadata.errorMessage }),
+      // T031: Add title fields to markdown frontmatter
+      ...(metadata.generatedTitle && { generated_title: metadata.generatedTitle }),
+      ...(metadata.titleGenerationStatus && { title_generation_status: metadata.titleGenerationStatus }),
+      ...(metadata.titleGeneratedAt && { title_generated_at: new Date(metadata.titleGeneratedAt).toISOString() }),
+      ...(metadata.titleModel && { title_model: metadata.titleModel })
     };
 
     // Generate YAML for all fields except prompt
