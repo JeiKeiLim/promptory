@@ -67,6 +67,10 @@ export const IPC_CHANNELS = {
   // LLM 모델 관리
   LLM_MODELS_LIST: 'llm:models:list',
   
+  // T067-T068: Title generation configuration
+  LLM_TITLE_CONFIG_GET: 'llm:title:config:get',
+  LLM_TITLE_CONFIG_SET: 'llm:title:config:set',
+  
   // LLM 큐 상태
   LLM_GET_QUEUE_STATUS: 'llm:getQueueStatus',
   

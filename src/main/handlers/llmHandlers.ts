@@ -100,6 +100,7 @@ export async function initializeLLMHandlers(
   registerResponseHandlers();
   registerModelHandlers();
   registerQueueHandlers();
+  registerTitleConfigHandlers(); // T067-T068
 }
 
 /**
@@ -775,6 +776,45 @@ function registerQueueHandlers(): void {
     }
 
     return response;
+  });
+}
+
+/**
+ * T067-T068: Title generation configuration handlers
+ */
+function registerTitleConfigHandlers(): void {
+  // Get title generation config
+  ipcMain.handle(IPC_CHANNELS.LLM_TITLE_CONFIG_GET, async () => {
+    try {
+      const config = await storageService.getTitleGenerationConfig();
+      return { success: true, config };
+    } catch (error) {
+      console.error('[Title Config] Failed to get config:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get config'
+      };
+    }
+  });
+
+  // Set title generation config
+  ipcMain.handle(IPC_CHANNELS.LLM_TITLE_CONFIG_SET, async (_, config: any) => {
+    try {
+      await storageService.updateTitleGenerationConfig(config);
+      
+      // Update TitleGenerationService configuration
+      if (titleService) {
+        titleService.updateConfig(config);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('[Title Config] Failed to set config:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to set config'
+      };
+    }
   });
 }
 

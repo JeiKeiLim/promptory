@@ -25,11 +25,25 @@ export class TitleGenerationService {
   }
 
   /**
+   * T071-T073: Update configuration at runtime
+   */
+  updateConfig(config: TitleGenerationConfig): void {
+    this.config = config;
+    console.log('[Title Generation] Config updated:', config);
+  }
+
+  /**
    * Generate a title for the given response content
    * T024: Core title generation method
    */
   async generateTitle(responseId: string, content: string): Promise<{ success: boolean; title?: string; error?: string }> {
     try {
+      // T071: Check if title generation is enabled
+      if (!this.config.enabled) {
+        console.log('[Title Generation] Skipped - disabled in config');
+        return { success: false, error: 'Title generation is disabled' };
+      }
+      
       // T024a: Add timestamp logging for SC-002 measurement
       const startTime = Date.now();
       
@@ -40,6 +54,7 @@ export class TitleGenerationService {
       const truncatedContent = this.truncateContent(content);
       
       // T025: Generate title using prompt templates
+      // T072: Use config.selectedModel
       const title = await this.callLLM(truncatedContent);
       
       // T026: Validate and truncate title
@@ -238,10 +253,4 @@ Rules:
     });
   }
 
-  /**
-   * Update configuration
-   */
-  updateConfig(config: TitleGenerationConfig): void {
-    this.config = config;
-  }
 }

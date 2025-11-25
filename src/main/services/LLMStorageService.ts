@@ -108,6 +108,19 @@ export class LLMStorageService {
     await this.runQuery(providerTableSQL);
     await this.runQuery(responsesTableSQL);
     
+    // T011: Create title generation config table
+    const titleConfigTableSQL = `
+      CREATE TABLE IF NOT EXISTS title_generation_config (
+        id INTEGER PRIMARY KEY CHECK(id = 1),
+        enabled INTEGER NOT NULL DEFAULT 1,
+        selected_model TEXT NOT NULL DEFAULT 'gemma3:1b',
+        selected_provider TEXT NOT NULL DEFAULT 'ollama',
+        timeout_seconds INTEGER NOT NULL DEFAULT 30,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    await this.runQuery(titleConfigTableSQL);
+    
     // Add title generation columns if they don't exist (backward compatibility)
     try {
       await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN generated_title TEXT`);
@@ -640,6 +653,72 @@ export class LLMStorageService {
       console.warn(`[LLM Storage] Failed to parse frontmatter for ${filePath}, returning raw content:`, error);
       return fileContent;
     }
+  }
+
+  // ==================== Title Generation Config ====================
+
+  /**
+   * T065: Get title generation configuration
+   */
+  async getTitleGenerationConfig(): Promise<any> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    return new Promise((resolve, reject) => {
+      this.db!.get(
+        'SELECT * FROM title_generation_config WHERE id = 1',
+        (err, row: any) => {
+          if (err) {
+            reject(err);
+          } else if (row) {
+            resolve({
+              enabled: row.enabled === 1,
+              selectedModel: row.selected_model,
+              selectedProvider: row.selected_provider,
+              timeoutSeconds: row.timeout_seconds
+            });
+          } else {
+            // Return default config
+            resolve({
+              enabled: true,
+              selectedModel: 'gemma3:1b',
+              selectedProvider: 'ollama',
+              timeoutSeconds: 30
+            });
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * T066: Update title generation configuration with validation
+   */
+  async updateTitleGenerationConfig(config: any): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // T062: Validate timeout (10-120 seconds)
+    if (config.timeoutSeconds < 10 || config.timeoutSeconds > 120) {
+      throw new Error('Timeout must be between 10 and 120 seconds');
+    }
+
+    return new Promise((resolve, reject) => {
+      this.db!.run(
+        `INSERT OR REPLACE INTO title_generation_config 
+         (id, enabled, selected_model, selected_provider, timeout_seconds, updated_at)
+         VALUES (1, ?, ?, ?, ?, ?)`,
+        [
+          config.enabled ? 1 : 0,
+          config.selectedModel,
+          config.selectedProvider,
+          config.timeoutSeconds,
+          Date.now()
+        ],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
   }
 
   // ==================== Cleanup ====================
