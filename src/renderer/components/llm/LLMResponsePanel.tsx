@@ -11,6 +11,7 @@ import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
 import { LLMResponseMetadata } from '@shared/types/llm';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { useLLMStore } from '@renderer/stores/useLLMStore';
+import { ResponseListItem } from './ResponseListItem';
 
 interface LLMResponsePanelProps {
   promptId: string;
@@ -23,7 +24,7 @@ interface LLMResponsePanelProps {
 
 export const LLMResponsePanel: React.FC<LLMResponsePanelProps> = ({ promptId, isOpen, onClose, onSelectResponse, selectedResponseId, onBackToParameters }) => {
   const { t } = useTranslation();
-  const { getNewResultsCount, clearNewResults } = useLLMStore();
+  const { getNewResultsCount, clearNewResults, getTitleLoading, setTitleLoading } = useLLMStore();
   const [responses, setResponses] = useState<LLMResponseMetadata[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,14 +42,30 @@ export const LLMResponsePanel: React.FC<LLMResponsePanelProps> = ({ promptId, is
     clearNewResults(promptId);
 
     // Listen for new responses
-    const unsubscribe = window.electronAPI.on(IPC_CHANNELS.LLM_RESPONSE_COMPLETE, (event: any) => {
+    const unsubscribeResponse = window.electronAPI.on(IPC_CHANNELS.LLM_RESPONSE_COMPLETE, (event: any) => {
       if (event.promptId === promptId) {
         loadHistory();
       }
     });
+    
+    // T054: Listen for title status updates
+    const unsubscribeTitle = window.electronAPI.on('llm:title:status', (event: any) => {
+      const { responseId, status, title } = event;
+      
+      if (status === 'pending') {
+        setTitleLoading(responseId, true);
+      } else if (status === 'completed') {
+        setTitleLoading(responseId, false);
+        // Reload history to get updated title
+        loadHistory();
+      } else if (status === 'failed') {
+        setTitleLoading(responseId, false);
+      }
+    });
 
     return () => {
-      unsubscribe();
+      unsubscribeResponse();
+      unsubscribeTitle();
     };
   }, [promptId, isOpen]); // Reload when promptId OR isOpen changes
 
@@ -209,78 +226,14 @@ export const LLMResponsePanel: React.FC<LLMResponsePanelProps> = ({ promptId, is
               </div>
               <div className="divide-y divide-gray-200">
                 {responses.map((response) => (
-                  <div
+                  <ResponseListItem
                     key={response.id}
-                    className={`p-3 transition-colors border-l-4 ${
-                      selectedResponseId === response.id 
-                        ? 'bg-blue-50 border-blue-500'
-                        : 'border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(response.status)}`}>
-                        {t(`llm.status.${response.status}`)}
-                      </span>
-                      <div className="flex items-center space-x-1">
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              const result = await window.electronAPI.invoke(IPC_CHANNELS.LLM_GET_RESPONSE, {
-                                responseId: response.id
-                              });
-                              if (result.response) {
-                                await navigator.clipboard.writeText(result.response.content);
-                                toast.success(t('llm.response.copiedToClipboard'));
-                              }
-                            } catch (error) {
-                              toast.error(t('llm.errors.copyFailed'));
-                            }
-                          }}
-                          className="text-xs text-blue-600 hover:text-blue-700"
-                          title={t('llm.response.copy')}
-                        >
-                          📋
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteResponse(response.id);
-                          }}
-                          className="text-xs text-gray-400 hover:text-red-600"
-                          title={t('llm.response.delete')}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div 
-                      onClick={() => handleSelectResponse(response.id)}
-                      className="cursor-pointer"
-                    >
-                    
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        {response.model}
-                      </div>
-                      
-                      <div className="text-xs text-gray-500">
-                        {formatDate(response.createdAt)}
-                      </div>
-                      
-                      {response.responseTimeMs && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          ⏱️ {formatDuration(response.responseTimeMs)}
-                        </div>
-                      )}
-                      
-                      {response.tokenUsage && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          🔤 {response.tokenUsage.total} tokens
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    response={response}
+                    isSelected={selectedResponseId === response.id}
+                    onSelect={handleSelectResponse}
+                    onDelete={handleDeleteResponse}
+                    titleLoading={getTitleLoading(response.id)}
+                  />
                 ))}
               </div>
             </>

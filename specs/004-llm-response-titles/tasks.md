@@ -96,35 +96,35 @@
 - [X] T034 [US1] Integrate title generation as post-processing in RequestQueue in src/main/services/RequestQueue.ts (add postProcessing hook support)
 - [X] T035 [US1] Add title generation call to LLM response completion handler in src/main/handlers/llmHandlers.ts
 - [X] T036 Run pnpm test to verify all US1 tests PASS
-- [ ] T037 [US1] REFACTOR: Extract prompt constants to separate file if needed
-- [ ] T038 [US1] REFACTOR: Add error handling improvements
-- [ ] T039 Run pnpm test to verify refactoring didn't break tests (REFACTOR phase confirmation)
+- [X] T037 [US1] REFACTOR: Extract prompt constants to separate file if needed
+- [X] T038 [US1] REFACTOR: Add error handling improvements
+- [X] T039 Run pnpm test to verify refactoring didn't break tests (REFACTOR phase confirmation)
 
 ### UI for User Story 1
 
-- [ ] T040 [P] [US1] Write unit test for ResponseListItem component with title display in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
-- [ ] T041 [P] [US1] Write unit test for loading indicator display in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
-- [ ] T042 [P] [US1] Write unit test for title vs model name display logic in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
-- [ ] T043 Run pnpm test to verify UI tests FAIL (RED phase confirmation)
-- [ ] T044 [US1] Create ResponseListItem component in src/renderer/components/llm/ResponseListItem.tsx (GREEN phase)
-- [ ] T045 [US1] Implement title display with prominent styling in src/renderer/components/llm/ResponseListItem.tsx
-- [ ] T046 [US1] Implement model name as secondary info display in src/renderer/components/llm/ResponseListItem.tsx
-- [ ] T047 [US1] Implement loading indicator for title generation in src/renderer/components/llm/ResponseListItem.tsx
-- [ ] T048 [US1] Extend useLLMStore in src/renderer/stores/useLLMStore.ts to add titleGenerationLoading Map
-- [ ] T049 [US1] Add updateResponseTitle action to useLLMStore in src/renderer/stores/useLLMStore.ts
-- [ ] T050 [US1] Add setTitleLoading action to useLLMStore in src/renderer/stores/useLLMStore.ts
-- [ ] T051 Run pnpm test to verify UI tests PASS (GREEN phase confirmation)
-- [ ] T052 [US1] Integrate ResponseListItem into LLMResponsePanel in src/renderer/components/llm/LLMResponsePanel.tsx
-- [ ] T053 Run pnpm test && pnpm build to verify US1 complete
+- [X] T040 [P] [US1] Write unit test for ResponseListItem component with title display in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
+- [X] T041 [P] [US1] Write unit test for loading indicator display in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
+- [X] T042 [P] [US1] Write unit test for title vs model name display logic in tests/unit/renderer/components/ResponseListItem.test.tsx (RED phase)
+- [X] T043 Run pnpm test to verify UI tests FAIL (RED phase confirmation)
+- [X] T044 [US1] Create ResponseListItem component in src/renderer/components/llm/ResponseListItem.tsx (GREEN phase)
+- [X] T045 [US1] Implement title display with prominent styling in src/renderer/components/llm/ResponseListItem.tsx
+- [X] T046 [US1] Implement model name as secondary info display in src/renderer/components/llm/ResponseListItem.tsx
+- [X] T047 [US1] Implement loading indicator for title generation in src/renderer/components/llm/ResponseListItem.tsx
+- [X] T048 [US1] Extend useLLMStore in src/renderer/stores/useLLMStore.ts to add titleGenerationLoading Map
+- [X] T049 [US1] Add updateResponseTitle action to useLLMStore in src/renderer/stores/useLLMStore.ts
+- [X] T050 [US1] Add setTitleLoading action to useLLMStore in src/renderer/stores/useLLMStore.ts
+- [X] T051 Run pnpm test to verify UI tests PASS (GREEN phase confirmation)
+- [X] T052 [US1] Integrate ResponseListItem into LLMResponsePanel in src/renderer/components/llm/LLMResponsePanel.tsx
+- [X] T053 Run pnpm test && pnpm build to verify US1 complete
 
 ### IPC for User Story 1
 
-- [ ] T054 [P] [US1] Write integration test for 'llm:title:status' event listener in tests/integration/ipc/titleGenerationHandlers.test.ts (RED phase)
-- [ ] T055 Run pnpm test to verify IPC tests FAIL (RED phase confirmation)
-- [ ] T056 [US1] Implement IPC event emitter for title status updates in src/main/services/TitleGenerationService.ts
-- [ ] T057 [US1] Extend preload API in src/preload/llm.ts to expose onTitleStatus listener
-- [ ] T058 [US1] Implement IPC listener in useLLMStore or custom hook in src/renderer/stores/useLLMStore.ts
-- [ ] T059 Run pnpm test to verify IPC tests PASS (GREEN phase confirmation)
+- [X] T054 [P] [US1] Write integration test for 'llm:title:status' event listener in tests/integration/ipc/titleGenerationHandlers.test.ts (RED phase)
+- [X] T055 Run pnpm test to verify IPC tests FAIL (RED phase confirmation)
+- [X] T056 [US1] Implement IPC event emitter for title status updates in src/main/services/TitleGenerationService.ts
+- [X] T057 [US1] Extend preload API in src/preload/llm.ts to expose onTitleStatus listener
+- [X] T058 [US1] Implement IPC listener in useLLMStore or custom hook in src/renderer/stores/useLLMStore.ts
+- [X] T059 Run pnpm test to verify IPC tests PASS (GREEN phase confirmation)
 
 **Checkpoint**: User Story 1 complete - automatic title generation works end-to-end with UI updates
 
