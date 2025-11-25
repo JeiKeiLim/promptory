@@ -182,4 +182,5 @@ export interface TitleStatusEvent {
   title?: string;
   generatedAt?: number;
   model?: string;
+  error?: string; // T094: Error message for failed status
 }

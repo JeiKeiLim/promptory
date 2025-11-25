@@ -55,7 +55,13 @@ export class TitleGenerationService {
       
       // T025: Generate title using prompt templates
       // T072: Use config.selectedModel
-      const title = await this.callLLM(truncatedContent);
+      // T091: Timeout with Promise.race
+      const title = await this.callLLMWithTimeout(truncatedContent);
+      
+      // T090: Handle empty/invalid title response
+      if (!title || title.trim().length === 0) {
+        throw new Error('Title generation returned empty result');
+      }
       
       // T026: Validate and truncate title
       const validatedTitle = this.validateTitle(title);
@@ -69,8 +75,13 @@ export class TitleGenerationService {
       
       return { success: true, title: validatedTitle };
     } catch (error) {
+      // T092: Error logging without user-facing errors
       console.error('[Title Generation] Error:', error);
-      await this.updateTitleStatus(responseId, 'failed');
+      
+      // T094: Update status to 'failed' and emit event
+      await this.updateTitleFailed(responseId, error instanceof Error ? error.message : 'Unknown error');
+      
+      // T090: Comprehensive error handling - return failure info
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -119,6 +130,37 @@ Rules:
     }
     
     return validated;
+  }
+
+  /**
+   * T091: Call LLM with timeout using Promise.race
+   */
+  private async callLLMWithTimeout(content: string): Promise<string> {
+    const timeoutMs = this.config.timeoutSeconds * 1000;
+    
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Title generation timeout after ${this.config.timeoutSeconds}s`));
+      }, timeoutMs);
+    });
+
+    try {
+      // Race between LLM call and timeout
+      const title = await Promise.race([
+        this.callLLM(content),
+        timeoutPromise
+      ]);
+      
+      return title;
+    } catch (error) {
+      // T090: Handle timeout and network errors gracefully
+      if (error instanceof Error) {
+        if (error.message.includes('timeout') || error.message.includes('ECONNREFUSED')) {
+          console.error('[Title Generation] Timeout or network error:', error.message);
+        }
+      }
+      throw error;
+    }
   }
 
   /**
@@ -237,6 +279,28 @@ Rules:
   }
 
   /**
+   * T094: Update response with failed title generation and emit event
+   */
+  private async updateTitleFailed(responseId: string, errorMessage: string): Promise<void> {
+    try {
+      const response = await this.storageService.getResponse(responseId);
+      if (response) {
+        response.titleGenerationStatus = 'failed';
+        await this.storageService.saveResponse(response);
+        
+        // Emit IPC event with error info
+        this.notifyTitleStatus({
+          responseId,
+          status: 'failed',
+          error: errorMessage
+        });
+      }
+    } catch (error) {
+      console.error('[Title Generation] Failed to update failed status:', error);
+    }
+  }
+
+  /**
    * Notify renderer process of title status change
    * T056: IPC event emitter
    */
@@ -246,6 +310,7 @@ Rules:
     title?: string;
     generatedAt?: number;
     model?: string;
+    error?: string; // T094: Error message for failed status
   }): void {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach(win => {
