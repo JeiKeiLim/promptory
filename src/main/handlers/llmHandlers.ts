@@ -11,6 +11,7 @@ import { CredentialService } from '../services/CredentialService';
 import { ParameterSubstitutionService } from '../services/ParameterSubstitutionService';
 import { RequestQueue } from '../services/RequestQueue';
 import { TokenCounter } from '../services/TokenCounter';
+import { TitleGenerationService } from '../services/TitleGenerationService';
 import { OllamaProvider } from '../services/providers/OllamaProvider';
 import { OpenAIProvider } from '../services/providers/OpenAIProvider';
 import { GeminiProvider } from '../services/providers/GeminiProvider';
@@ -52,6 +53,7 @@ let credentialService: CredentialService;
 let parameterService: ParameterSubstitutionService;
 let requestQueue: RequestQueue;
 let tokenCounter: TokenCounter;
+let titleService: TitleGenerationService;
 
 // State
 let activeProvider: LLMProviderConfig | null = null;
@@ -74,6 +76,16 @@ export async function initializeLLMHandlers(
   parameterService = new ParameterSubstitutionService();
   requestQueue = new RequestQueue();
   tokenCounter = new TokenCounter();
+  
+  // T034: Initialize TitleGenerationService with default config
+  // Default: enabled, use same model/provider as main provider
+  const titleConfig = {
+    enabled: true,
+    selectedModel: activeProvider?.modelName || 'gemma3:1b',
+    selectedProvider: activeProvider?.providerType || 'ollama',
+    timeoutSeconds: 30
+  };
+  titleService = new TitleGenerationService(titleConfig, storageService);
 
   // Clear any orphaned queue state from unexpected shutdown
   await storageService.markPendingAsCancelled();
@@ -534,6 +546,15 @@ async function processNextRequest(mainWindow: BrowserWindow): Promise<void> {
     
     responseMetadata.filePath = filePath;
     await storageService.saveResponseMetadata(responseMetadata);
+
+    // T035: Generate title for the response (non-blocking)
+    // This happens in the background after the main response is saved
+    if (titleService) {
+      // Don't await - let it run async so we don't block the queue
+      titleService.generateTitle(responseId, result.content).catch(err => {
+        console.error(`[Title Generation] Failed for response ${responseId}:`, err);
+      });
+    }
 
     // Emit completion event
     mainWindow.webContents.send(IPC_CHANNELS.LLM_RESPONSE_COMPLETE, {
