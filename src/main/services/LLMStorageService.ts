@@ -101,11 +101,34 @@ export class LLMStorageService {
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_prompt_id ON llm_responses(prompt_id)',
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_created_at ON llm_responses(created_at DESC)',
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_status ON llm_responses(status)',
-      'CREATE INDEX IF NOT EXISTS idx_llm_responses_provider ON llm_responses(provider)'
+      'CREATE INDEX IF NOT EXISTS idx_llm_responses_provider ON llm_responses(provider)',
+      'CREATE INDEX IF NOT EXISTS idx_llm_responses_title_status ON llm_responses(title_generation_status)'
     ];
 
     await this.runQuery(providerTableSQL);
     await this.runQuery(responsesTableSQL);
+    
+    // Add title generation columns if they don't exist (backward compatibility)
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN generated_title TEXT`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_generation_status TEXT CHECK(title_generation_status IN ('pending', 'completed', 'failed'))`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_generated_at INTEGER`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_model TEXT`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
     
     for (const idx of indexSQL) {
       await this.runQuery(idx);

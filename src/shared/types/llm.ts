@@ -15,6 +15,11 @@ export type LLMProviderType = 'ollama' | 'openai' | 'azure_openai' | 'gemini';
 export type LLMRequestStatus = 'pending' | 'completed' | 'failed' | 'cancelled';
 
 /**
+ * Title generation status
+ */
+export type TitleGenerationStatus = 'pending' | 'completed' | 'failed';
+
+/**
  * Provider configuration
  */
 export interface LLMProviderConfig {
@@ -75,6 +80,12 @@ export interface LLMResponseMetadata {
   filePath: string;  // Relative path
   errorCode?: string;
   errorMessage?: string;
+  
+  // Title generation (optional for backward compatibility)
+  generatedTitle?: string;
+  titleGenerationStatus?: TitleGenerationStatus;
+  titleGeneratedAt?: number;
+  titleModel?: string;
 }
 
 /**
@@ -153,5 +164,15 @@ export interface GenerateResult {
   tokenUsage?: TokenUsage;
   model: string;
   finishReason?: string;
+}
+
+/**
+ * Title generation configuration
+ */
+export interface TitleGenerationConfig {
+  enabled: boolean;
+  selectedModel: string;
+  selectedProvider: LLMProviderType;
+  timeoutSeconds: number;
 }
 
