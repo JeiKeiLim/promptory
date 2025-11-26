@@ -351,6 +351,21 @@
       "noProvider": "LLMプロバイダーが設定されていません。設定で構成してください。",
       "configureProvider": "プロバイダーを構成"
     },
+    "settings": {
+      "title": "LLM設定",
+      "description": "LLM呼び出しとタイトル生成のためのプロバイダー設定",
+      "llmCall": "LLM呼び出し設定",
+      "llmModel": "LLMモデル",
+      "llmTimeout": "LLMタイムアウト（秒）",
+      "titleGeneration": "タイトル生成設定",
+      "enableTitle": "自動タイトル生成を有効にする",
+      "titleModel": "タイトル生成モデル",
+      "titleTimeout": "タイトル生成タイムアウト（秒）",
+      "save": "保存",
+      "saving": "保存中...",
+      "saveSuccess": "設定が正常に保存されました",
+      "saveFailed": "設定の保存に失敗しました"
+    },
     "callExtended": {
       "title": "LLM呼び出し",
       "callButton": "LLMを呼び出す",

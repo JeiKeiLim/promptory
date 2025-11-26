@@ -351,6 +351,21 @@
       "noProvider": "No LLM provider configured. Configure one in Settings.",
       "configureProvider": "Configure Provider"
     },
+    "settings": {
+      "title": "LLM Settings",
+      "description": "Configure LLM provider and settings for calls and title generation",
+      "llmCall": "LLM Call Settings",
+      "llmModel": "LLM Model",
+      "llmTimeout": "LLM Timeout (seconds)",
+      "titleGeneration": "Title Generation Settings",
+      "enableTitle": "Enable automatic title generation",
+      "titleModel": "Title Generation Model",
+      "titleTimeout": "Title Generation Timeout (seconds)",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Configuration saved successfully",
+      "saveFailed": "Failed to save configuration"
+    },
     "callExtended": {
       "title": "Call LLM",
       "callButton": "Call LLM",

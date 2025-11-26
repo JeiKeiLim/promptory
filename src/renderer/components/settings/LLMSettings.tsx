@@ -190,6 +190,8 @@ export const LLMSettings: React.FC = () => {
           value={provider}
           onChange={(e) => handleProviderChange(e.target.value as LLMProviderType)}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          aria-label="Select LLM provider"
+          aria-required="true"
         >
           <option value="ollama">{t('llm.provider.ollama', 'Ollama')}</option>
           <option value="openai">{t('llm.provider.openai', 'OpenAI')}</option>
@@ -218,9 +220,13 @@ export const LLMSettings: React.FC = () => {
               className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
                 validationErrors.llmModel ? 'border-red-300' : 'border-gray-300'
               }`}
+              aria-label="LLM model name"
+              aria-required="true"
+              aria-invalid={!!validationErrors.llmModel}
+              aria-describedby={validationErrors.llmModel ? 'llm-model-error' : undefined}
             />
             {validationErrors.llmModel && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.llmModel}</p>
+              <p id="llm-model-error" className="mt-1 text-sm text-red-600" role="alert">{validationErrors.llmModel}</p>
             )}
           </div>
 
@@ -239,9 +245,13 @@ export const LLMSettings: React.FC = () => {
               className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
                 validationErrors.llmTimeout ? 'border-red-300' : 'border-gray-300'
               }`}
+              aria-label="LLM call timeout in seconds"
+              aria-required="true"
+              aria-invalid={!!validationErrors.llmTimeout}
+              aria-describedby={validationErrors.llmTimeout ? 'llm-timeout-error' : undefined}
             />
             {validationErrors.llmTimeout && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.llmTimeout}</p>
+              <p id="llm-timeout-error" className="mt-1 text-sm text-red-600" role="alert">{validationErrors.llmTimeout}</p>
             )}
           </div>
         </div>
@@ -262,6 +272,7 @@ export const LLMSettings: React.FC = () => {
               checked={titleEnabled}
               onChange={(e) => setTitleEnabled(e.target.checked)}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              aria-label="Enable automatic title generation"
             />
             <label htmlFor="title-enabled" className="ml-2 block text-sm text-gray-700">
               {t('llm.settings.enableTitle', 'Enable automatic title generation')}
@@ -281,9 +292,13 @@ export const LLMSettings: React.FC = () => {
               className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
                 validationErrors.titleModel ? 'border-red-300' : 'border-gray-300'
               }`}
+              aria-label="Title generation model name"
+              aria-required="true"
+              aria-invalid={!!validationErrors.titleModel}
+              aria-describedby={validationErrors.titleModel ? 'title-model-error' : undefined}
             />
             {validationErrors.titleModel && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.titleModel}</p>
+              <p id="title-model-error" className="mt-1 text-sm text-red-600" role="alert">{validationErrors.titleModel}</p>
             )}
           </div>
 
@@ -302,9 +317,13 @@ export const LLMSettings: React.FC = () => {
               className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
                 validationErrors.titleTimeout ? 'border-red-300' : 'border-gray-300'
               }`}
+              aria-label="Title generation timeout in seconds"
+              aria-required="true"
+              aria-invalid={!!validationErrors.titleTimeout}
+              aria-describedby={validationErrors.titleTimeout ? 'title-timeout-error' : undefined}
             />
             {validationErrors.titleTimeout && (
-              <p className="mt-1 text-sm text-red-600">{validationErrors.titleTimeout}</p>
+              <p id="title-timeout-error" className="mt-1 text-sm text-red-600" role="alert">{validationErrors.titleTimeout}</p>
             )}
           </div>
         </div>
@@ -331,6 +350,7 @@ export const LLMSettings: React.FC = () => {
           onClick={handleSave}
           disabled={!isFormValid || saving}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Save LLM configuration"
         >
           {saving ? t('llm.settings.saving', 'Saving...') : t('llm.settings.save', 'Save')}
         </button>

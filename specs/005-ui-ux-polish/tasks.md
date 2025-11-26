@@ -141,14 +141,14 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Refactor & Polish (REFACTOR Phase - 1 hour)
 
-- [ ] T064 [US1] Extract validation logic from LLMSettings component into reusable `validateUnifiedLLMConfig` utility function in src/renderer/utils/validation.ts
+- [X] T064 [US1] Extract validation logic from LLMSettings component into reusable `validateUnifiedLLMConfig` utility function in src/renderer/utils/validation.ts
 - [ ] T065 [US1] Check LLMSettings.tsx line count; if >200 lines, extract LLM Call Settings section into sub-component src/renderer/components/settings/LLMCallSettingsSection.tsx (otherwise skip T066)
 - [ ] T066 [US1] If T065 extraction performed: Extract Title Generation Settings section into sub-component src/renderer/components/settings/TitleGenerationSettingsSection.tsx (otherwise skip)
-- [ ] T067 [US1] Add i18n translation keys for all labels, placeholders, and error messages in LLMSettings component
-- [ ] T068 [US1] Verify keyboard navigation (Tab to navigate fields, Enter to save) works in LLMSettings component
-- [ ] T069 [US1] Add ARIA labels to all form fields for screen reader accessibility in LLMSettings component
-- [ ] T070 [US1] Run linter: `pnpm lint` and fix any issues
-- [ ] T071 [US1] Run full test suite: `pnpm test` and verify all tests still PASS after refactoring
+- [X] T067 [US1] Add i18n translation keys for all labels, placeholders, and error messages in LLMSettings component
+- [X] T068 [US1] Verify keyboard navigation (Tab to navigate fields, Enter to save) works in LLMSettings component
+- [X] T069 [US1] Add ARIA labels to all form fields for screen reader accessibility in LLMSettings component
+- [X] T070 [US1] Run linter: `pnpm lint` and fix any issues
+- [X] T071 [US1] Run full test suite: `pnpm test` and verify all tests still PASS after refactoring
 
 ---
 
