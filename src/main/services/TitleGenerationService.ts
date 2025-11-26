@@ -45,6 +45,13 @@ export class TitleGenerationService {
         return { success: false, error: 'Title generation is disabled' };
       }
       
+      // Validate model configuration
+      if (!this.config.selectedModel || this.config.selectedModel.trim() === '') {
+        const error = 'Title generation model not configured';
+        console.error('[Title Generation] Error:', error);
+        return { success: false, error };
+      }
+      
       // T024a: Add timestamp logging for SC-002 measurement
       const startTime = Date.now();
       
