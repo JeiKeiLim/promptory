@@ -136,8 +136,7 @@ Users close the prompt use modal using only the X icon in the header, with the r
 
 #### UI Spacing Improvements
 
-- **FR-013**: System MUST apply 16px left and right margins to the shortcut list view
-- **FR-014**: Margins MUST align with the application's standard spacing guidelines (16px)
+- **FR-013**: System MUST apply 16px left and right margins to the shortcut list view, aligning with application's standard spacing guidelines
 
 #### Modal Simplification
 

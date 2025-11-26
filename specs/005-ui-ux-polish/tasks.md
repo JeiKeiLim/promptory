@@ -83,7 +83,7 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### TDD: Write Tests (RED Phase - 2 hours)
 
-- [ ] T019 [US1] Create test file tests/unit/renderer/components/settings/UnifiedLLMSettings.test.tsx
+- [ ] T019 [US1] Create test file tests/unit/renderer/components/settings/LLMSettings.test.tsx
 - [ ] T020 [US1] Write test: should display provider dropdown at top (verify FAILS)
 - [ ] T021 [US1] Write test: should display LLM Call Settings section with model and timeout fields (verify FAILS)
 - [ ] T022 [US1] Write test: should display Title Generation Settings section with enabled toggle, model, and timeout fields (verify FAILS)
@@ -96,7 +96,8 @@ Tasks are organized by user story to enable independent implementation and testi
 - [ ] T029 [US1] Write test: should load config via IPC on component mount (verify FAILS)
 - [ ] T030 [US1] Write test: should save unified config via IPC when save button clicked (verify FAILS)
 - [ ] T031 [US1] Write test: should apply default timeout values (60s LLM call, 30s title generation) (verify FAILS)
-- [ ] T032 [US1] Run `pnpm test tests/unit/renderer/components/settings/UnifiedLLMSettings.test.tsx` and confirm all 13 tests FAIL (RED)
+- [ ] T031a [US1] Write test: should show inline validation errors when provider selected but both model fields empty (edge case: partial config) (verify FAILS)
+- [ ] T032 [US1] Run `pnpm test tests/unit/renderer/components/settings/LLMSettings.test.tsx` and confirm all 14 tests FAIL (RED)
 
 ### Implementation: Component (GREEN Phase - 4 hours)
 
@@ -116,7 +117,7 @@ Tasks are organized by user story to enable independent implementation and testi
 - [ ] T046 [US1] Add success toast notification after successful save in LLMSettings component
 - [ ] T047 [US1] Add error toast notification on save failure with validation errors in LLMSettings component
 - [ ] T048 [US1] Apply default timeout values (60s for LLM call, 30s for title generation) when creating new config in LLMSettings component
-- [ ] T049 [US1] Run tests: `pnpm test tests/unit/renderer/components/settings/UnifiedLLMSettings.test.tsx` and verify all 13 tests PASS (GREEN)
+- [ ] T049 [US1] Run tests: `pnpm test tests/unit/renderer/components/settings/LLMSettings.test.tsx` and verify all 14 tests PASS (GREEN)
 
 ### Implementation: IPC Handler (GREEN Phase - 2 hours)
 
@@ -125,7 +126,7 @@ Tasks are organized by user story to enable independent implementation and testi
 - [ ] T052 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_GET in llmUnifiedConfigHandler.ts (loads config from file system)
 - [ ] T053 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_SAVE in llmUnifiedConfigHandler.ts (validates, then saves to file system with atomic write)
 - [ ] T054 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_VALIDATE in llmUnifiedConfigHandler.ts (returns validation result without saving)
-- [ ] T055 [US1] Implement config migration logic in llmUnifiedConfigHandler.ts (reads old llm-provider.json + title-generation.json, merges, writes llm-unified.json)
+- [ ] T055 [US1] Implement config migration logic in llmUnifiedConfigHandler.ts (reads old llm-provider.json + title-generation.json, merges, writes llm-unified.json; on error: fall back to DEFAULT_UNIFIED_CONFIG, log warning, continue app startup)
 - [ ] T056 [US1] Register all three IPC handlers in src/main/main.ts using registerUnifiedLLMConfigHandlers()
 - [ ] T057 [US1] Expose llm:unified-config:* channels in src/preload/preload.ts via window.electronAPI
 - [ ] T058 [US1] Create integration test tests/integration/llm-unified-config.test.ts for IPC save/retrieve flow
@@ -141,8 +142,8 @@ Tasks are organized by user story to enable independent implementation and testi
 ### Refactor & Polish (REFACTOR Phase - 1 hour)
 
 - [ ] T064 [US1] Extract validation logic from LLMSettings component into reusable `validateUnifiedLLMConfig` utility function in src/renderer/utils/validation.ts
-- [ ] T065 [US1] Extract LLM Call Settings section into sub-component src/renderer/components/settings/LLMCallSettingsSection.tsx if component exceeds 200 lines
-- [ ] T066 [US1] Extract Title Generation Settings section into sub-component src/renderer/components/settings/TitleGenerationSettingsSection.tsx if component exceeds 200 lines
+- [ ] T065 [US1] Check LLMSettings.tsx line count; if >200 lines, extract LLM Call Settings section into sub-component src/renderer/components/settings/LLMCallSettingsSection.tsx (otherwise skip T066)
+- [ ] T066 [US1] If T065 extraction performed: Extract Title Generation Settings section into sub-component src/renderer/components/settings/TitleGenerationSettingsSection.tsx (otherwise skip)
 - [ ] T067 [US1] Add i18n translation keys for all labels, placeholders, and error messages in LLMSettings component
 - [ ] T068 [US1] Verify keyboard navigation (Tab to navigate fields, Enter to save) works in LLMSettings component
 - [ ] T069 [US1] Add ARIA labels to all form fields for screen reader accessibility in LLMSettings component
@@ -211,7 +212,7 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Refactor & Polish (REFACTOR Phase - 30 minutes)
 
-- [ ] T108 [US2] Extract debounce logic into custom hook src/renderer/hooks/useDebouncedFavoriteToggle.ts
+- [ ] T108 [US2] Extract debounce logic into custom hook src/renderer/hooks/useDebouncedFavoriteToggle.ts (interface: `useDebouncedFavoriteToggle(delay: number) => (promptId: string, newState: boolean) => void`)
 - [ ] T109 [US2] Verify filled vs outline StarIcon usage (24/solid for filled, 24/outline for empty)
 - [ ] T110 [US2] Test favorite toggle on all prompt cards in list (scroll and verify all have stars)
 - [ ] T111 [US2] Verify keyboard accessibility (Tab to focus star, Enter/Space to toggle)
