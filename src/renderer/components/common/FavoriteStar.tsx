@@ -11,8 +11,9 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 
 export interface FavoriteStarProps {
   promptId: string;
+  path: string;
   isFavorite: boolean;
-  onToggle: (promptId: string, currentState: boolean) => void;
+  onToggle: (promptId: string, path: string, currentState: boolean) => void;
 }
 
 /**
@@ -26,6 +27,7 @@ export interface FavoriteStarProps {
  */
 export const FavoriteStar: React.FC<FavoriteStarProps> = ({
   promptId,
+  path,
   isFavorite,
   onToggle,
 }) => {
@@ -33,7 +35,7 @@ export const FavoriteStar: React.FC<FavoriteStarProps> = ({
   // T087: Stops propagation to prevent parent click handlers
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggle(promptId, isFavorite);
+    onToggle(promptId, path, isFavorite);
   };
 
   // T088: Aria-label for accessibility

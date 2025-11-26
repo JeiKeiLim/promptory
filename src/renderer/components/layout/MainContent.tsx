@@ -244,6 +244,7 @@ export const MainContent: React.FC = () => {
                 <div className="absolute top-2 right-2 z-10">
                   <FavoriteStar
                     promptId={prompt.id}
+                    path={prompt.path}
                     isFavorite={prompt.metadata.favorite || false}
                     onToggle={handleFavoriteToggle}
                   />

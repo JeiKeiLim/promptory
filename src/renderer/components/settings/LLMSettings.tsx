@@ -36,6 +36,10 @@ export const LLMSettings: React.FC = () => {
   const [titleEnabled, setTitleEnabled] = useState(true);
   const [titleModel, setTitleModel] = useState('gemma3:1b');
   const [titleTimeout, setTitleTimeout] = useState(30);
+  
+  // Provider-specific configuration
+  const [baseUrl, setBaseUrl] = useState('http://localhost:11434'); // For Ollama and Azure
+  const [apiKey, setApiKey] = useState(''); // For OpenAI, Azure, Gemini
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [saving, setSaving] = useState(false);
@@ -59,6 +63,16 @@ export const LLMSettings: React.FC = () => {
         setTitleEnabled(config.titleGeneration.enabled);
         setTitleModel(config.titleGeneration.model);
         setTitleTimeout(config.titleGeneration.timeout);
+        
+        // Load provider-specific config if available
+        if (response.providerConfig) {
+          if (response.providerConfig.baseUrl) {
+            setBaseUrl(response.providerConfig.baseUrl);
+          }
+          if (response.providerConfig.credentials) {
+            setApiKey(response.providerConfig.credentials);
+          }
+        }
       } else {
         // Apply defaults if no config exists
         const defaults = DEFAULT_UNIFIED_CONFIG;
@@ -68,6 +82,8 @@ export const LLMSettings: React.FC = () => {
         setTitleEnabled(defaults.titleGeneration.enabled);
         setTitleModel(defaults.titleGeneration.model);
         setTitleTimeout(defaults.titleGeneration.timeout);
+        setBaseUrl('http://localhost:11434');
+        setApiKey('');
       }
     } catch (error) {
       console.error('Failed to load unified config:', error);
@@ -79,6 +95,8 @@ export const LLMSettings: React.FC = () => {
       setTitleEnabled(defaults.titleGeneration.enabled);
       setTitleModel(defaults.titleGeneration.model);
       setTitleTimeout(defaults.titleGeneration.timeout);
+      setBaseUrl('http://localhost:11434');
+      setApiKey('');
     }
   };
 
@@ -103,23 +121,39 @@ export const LLMSettings: React.FC = () => {
   const handleProviderChange = (newProvider: LLMProviderType) => {
     setProvider(newProvider);
     
-    // Set default models based on provider
+    // Always set provider-specific defaults when provider changes
     switch (newProvider) {
       case 'ollama':
-        if (!llmModel) setLlmModel('gemma3');
-        if (!titleModel) setTitleModel('gemma3:1b');
+        setLlmModel('gemma3');
+        setTitleModel('gemma3:1b');
+        setLlmTimeout(60);
+        setTitleTimeout(30);
+        setBaseUrl('http://localhost:11434');
+        setApiKey('');
         break;
       case 'openai':
-        if (!llmModel) setLlmModel('gpt-4');
-        if (!titleModel) setTitleModel('gpt-3.5-turbo');
+        setLlmModel('gpt-4');
+        setTitleModel('gpt-3.5-turbo');
+        setLlmTimeout(60);
+        setTitleTimeout(30);
+        setBaseUrl('');
+        setApiKey('');
         break;
       case 'azure_openai':
-        if (!llmModel) setLlmModel('gpt-4');
-        if (!titleModel) setTitleModel('gpt-3.5-turbo');
+        setLlmModel('gpt-4');
+        setTitleModel('gpt-3.5-turbo');
+        setLlmTimeout(60);
+        setTitleTimeout(30);
+        setBaseUrl('');
+        setApiKey('');
         break;
       case 'gemini':
-        if (!llmModel) setLlmModel('gemini-pro');
-        if (!titleModel) setTitleModel('gemini-pro');
+        setLlmModel('gemini-pro');
+        setTitleModel('gemini-pro');
+        setLlmTimeout(60);
+        setTitleTimeout(30);
+        setBaseUrl('');
+        setApiKey('');
         break;
     }
   };
@@ -146,10 +180,23 @@ export const LLMSettings: React.FC = () => {
           timeout: titleTimeout
         }
       };
+      
+      // Include provider-specific configuration
+      const providerConfig: any = {
+        providerType: provider
+      };
+      
+      if (provider === 'ollama' || provider === 'azure_openai') {
+        providerConfig.baseUrl = baseUrl;
+      }
+      
+      if (provider === 'openai' || provider === 'azure_openai' || provider === 'gemini') {
+        providerConfig.credentials = apiKey;
+      }
 
       const response = await window.electronAPI.invoke(
         IPC_CHANNELS.LLM_UNIFIED_CONFIG_SAVE,
-        { config }
+        { config, providerConfig }
       );
 
       if (response.success) {
@@ -199,6 +246,106 @@ export const LLMSettings: React.FC = () => {
           <option value="gemini">{t('llm.provider.gemini', 'Google Gemini')}</option>
         </select>
       </div>
+
+      {/* Provider-Specific Configuration */}
+      {provider === 'ollama' && (
+        <div>
+          <label htmlFor="ollama-url" className="block text-sm font-medium text-gray-700">
+            {t('llm.provider.ollama.url', 'Ollama Server URL')}
+          </label>
+          <input
+            id="ollama-url"
+            type="url"
+            value={baseUrl}
+            onChange={(e) => setBaseUrl(e.target.value)}
+            placeholder="http://localhost:11434"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            aria-label="Ollama server URL"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            {t('llm.provider.ollama.urlHelp', 'URL of your Ollama server (default: http://localhost:11434)')}
+          </p>
+        </div>
+      )}
+      
+      {provider === 'openai' && (
+        <div>
+          <label htmlFor="openai-key" className="block text-sm font-medium text-gray-700">
+            {t('llm.provider.openai.apiKey', 'OpenAI API Key')}
+          </label>
+          <input
+            id="openai-key"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="sk-..."
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            aria-label="OpenAI API key"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            {t('llm.provider.openai.apiKeyHelp', 'Your OpenAI API key (stored securely)')}
+          </p>
+        </div>
+      )}
+      
+      {provider === 'azure_openai' && (
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="azure-url" className="block text-sm font-medium text-gray-700">
+              {t('llm.provider.azure.endpoint', 'Azure OpenAI Endpoint')}
+            </label>
+            <input
+              id="azure-url"
+              type="url"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="https://your-resource.openai.azure.com"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              aria-label="Azure OpenAI endpoint URL"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              {t('llm.provider.azure.endpointHelp', 'Your Azure OpenAI resource endpoint')}
+            </p>
+          </div>
+          <div>
+            <label htmlFor="azure-key" className="block text-sm font-medium text-gray-700">
+              {t('llm.provider.azure.apiKey', 'Azure OpenAI API Key')}
+            </label>
+            <input
+              id="azure-key"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Your Azure API key"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              aria-label="Azure OpenAI API key"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              {t('llm.provider.azure.apiKeyHelp', 'Your Azure OpenAI API key (stored securely)')}
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {provider === 'gemini' && (
+        <div>
+          <label htmlFor="gemini-key" className="block text-sm font-medium text-gray-700">
+            {t('llm.provider.gemini.apiKey', 'Google Gemini API Key')}
+          </label>
+          <input
+            id="gemini-key"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Your Gemini API key"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            aria-label="Google Gemini API key"
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            {t('llm.provider.gemini.apiKeyHelp', 'Your Google Gemini API key (stored securely)')}
+          </p>
+        </div>
+      )}
 
       {/* LLM Call Settings Section */}
       <div className="border-t border-gray-200 pt-6">

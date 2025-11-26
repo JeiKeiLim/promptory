@@ -211,7 +211,15 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => {
+        // Close modal when clicking on backdrop (not on modal content)
+        if (e.target === e.currentTarget) {
+          handleCloseModal();
+        }
+      }}
+    >
       <div className={`bg-white rounded-lg shadow-xl w-full max-h-[90vh] flex flex-col transition-all duration-300 ${
         showResponsePanel ? 'max-w-[90vw]' : 'max-w-6xl'
       }`}>

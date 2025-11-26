@@ -254,7 +254,10 @@ export const ShortcutSettings: React.FC = () => {
         </div>
 
         {/* T117: Add px-4 for 16px left and right margins */}
-        <div className="px-4 border border-gray-200 rounded-lg divide-y divide-gray-200">
+        <div 
+          data-testid="shortcut-list-container"
+          className="px-4 border border-gray-200 rounded-lg divide-y divide-gray-200"
+        >
           {shortcutList.map((shortcut) => (
             <ShortcutInput
               key={shortcut.key}

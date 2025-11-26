@@ -38,6 +38,15 @@ function getFileService(): FileService {
 }
 
 /**
+ * Shared file service getter for other handlers
+ * @returns 파일 서비스 인스턴스
+ * @throws Error - 파일 서비스가 초기화되지 않은 경우
+ */
+export function getSharedFileService(): FileService {
+  return getFileService();
+}
+
+/**
  * 에러 응답 생성 헬퍼
  * @param code - 에러 코드
  * @param message - 에러 메시지

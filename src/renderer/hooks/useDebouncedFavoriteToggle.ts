@@ -12,8 +12,8 @@ import { toast } from '@renderer/components/common/ToastContainer';
 
 export interface UseDebouncedFavoriteToggleOptions {
   delay?: number;
-  onSuccess?: (promptId: string, newState: boolean) => void;
-  onError?: (promptId: string, error: Error) => void;
+  onSuccess?: (promptId: string, path: string, newState: boolean) => void;
+  onError?: (promptId: string, path: string, error: Error) => void;
 }
 
 /**
@@ -31,7 +31,7 @@ export interface UseDebouncedFavoriteToggleOptions {
  */
 export function useDebouncedFavoriteToggle(
   options: UseDebouncedFavoriteToggleOptions = {}
-): (promptId: string, currentState: boolean) => void {
+): (promptId: string, path: string, currentState: boolean) => void {
   const { delay = 300, onSuccess, onError } = options;
   const { t } = useTranslation();
 
@@ -46,7 +46,7 @@ export function useDebouncedFavoriteToggle(
   }, []);
 
   const toggleFavorite = useCallback(
-    async (promptId: string, currentState: boolean) => {
+    async (promptId: string, path: string, currentState: boolean) => {
       // Store original state for rollback
       if (!originalStatesRef.current.has(promptId)) {
         originalStatesRef.current.set(promptId, currentState);
@@ -67,6 +67,7 @@ export function useDebouncedFavoriteToggle(
           // Call IPC to persist favorite status
           const result = await window.electronAPI.invoke(IPC_CHANNELS.PROMPT_UPDATE_FAVORITE, {
             id: promptId,
+            path: path,
             favorite: newState,
           });
 
@@ -75,7 +76,7 @@ export function useDebouncedFavoriteToggle(
             originalStatesRef.current.delete(promptId);
             debounceTimersRef.current.delete(promptId);
 
-            onSuccess?.(promptId, newState);
+            onSuccess?.(promptId, path, newState);
           } else {
             throw new Error(result.error || 'Failed to update favorite');
           }
@@ -93,7 +94,7 @@ export function useDebouncedFavoriteToggle(
           debounceTimersRef.current.delete(promptId);
 
           const errorObj = error instanceof Error ? error : new Error(String(error));
-          onError?.(promptId, errorObj);
+          onError?.(promptId, path, errorObj);
           
           console.error('Failed to toggle favorite:', error);
         }
