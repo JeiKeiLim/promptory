@@ -12,6 +12,7 @@ import { setFileService } from './handlers/fileHandlers';
 import { registerWindowHandlers } from './handlers/windowHandlers';
 import { registerDialogHandlers } from './handlers/dialogHandlers';
 import { initializeLLMHandlers, cleanupOnQuit } from './handlers/llmHandlers';
+import { registerUnifiedLLMConfigHandlers } from './handlers/llmUnifiedConfigHandler';
 import { initializeFileWatcher, disposeFileWatcher } from './services/FileWatcherService';
 import { UpdateService } from './services/UpdateService';
 import { homedir } from 'os';
@@ -269,6 +270,9 @@ async function initializeApp(): Promise<void> {
 
     // 윈도우 제어 핸들러 등록
     registerWindowHandlers();
+    
+    // Unified LLM config handlers 등록 (T056)
+    registerUnifiedLLMConfigHandlers();
 
     // 앱 이벤트 핸들러 등록
     registerAppHandlers();

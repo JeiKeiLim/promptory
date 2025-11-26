@@ -101,34 +101,34 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Implementation: Component (GREEN Phase - 4 hours)
 
-- [ ] T033 [US1] Refactor src/renderer/components/settings/LLMSettings.tsx to use single-column layout with Tailwind `space-y-6`
-- [ ] T034 [US1] Add provider dropdown at top of LLMSettings component (shared for both LLM call and title generation)
-- [ ] T035 [US1] Add "LLM Call Settings" section header with model input field in LLMSettings component
-- [ ] T036 [US1] Add timeout input field (1-999) to LLM Call Settings section in LLMSettings component
-- [ ] T037 [US1] Add "Title Generation Settings" section header with enabled toggle in LLMSettings component
-- [ ] T038 [US1] Add model input field to Title Generation Settings section in LLMSettings component
-- [ ] T039 [US1] Add timeout input field (1-999) to Title Generation Settings section in LLMSettings component
-- [ ] T040 [US1] Remove Display Name field from LLM call settings in LLMSettings component
-- [ ] T041 [US1] Implement inline validation for timeout fields (1-999 range) in LLMSettings component
-- [ ] T042 [US1] Implement inline validation for required model fields in LLMSettings component
-- [ ] T043 [US1] Disable save button when validation errors exist in LLMSettings component
-- [ ] T044 [US1] Add useEffect hook to load unified config via IPC (LLM_UNIFIED_CONFIG_GET) on mount in LLMSettings component
-- [ ] T045 [US1] Implement handleSave function calling IPC (LLM_UNIFIED_CONFIG_SAVE) in LLMSettings component
-- [ ] T046 [US1] Add success toast notification after successful save in LLMSettings component
-- [ ] T047 [US1] Add error toast notification on save failure with validation errors in LLMSettings component
-- [ ] T048 [US1] Apply default timeout values (60s for LLM call, 30s for title generation) when creating new config in LLMSettings component
+- [X] T033 [US1] Refactor src/renderer/components/settings/LLMSettings.tsx to use single-column layout with Tailwind `space-y-6`
+- [X] T034 [US1] Add provider dropdown at top of LLMSettings component (shared for both LLM call and title generation)
+- [X] T035 [US1] Add "LLM Call Settings" section header with model input field in LLMSettings component
+- [X] T036 [US1] Add timeout input field (1-999) to LLM Call Settings section in LLMSettings component
+- [X] T037 [US1] Add "Title Generation Settings" section header with enabled toggle in LLMSettings component
+- [X] T038 [US1] Add model input field to Title Generation Settings section in LLMSettings component
+- [X] T039 [US1] Add timeout input field (1-999) to Title Generation Settings section in LLMSettings component
+- [X] T040 [US1] Remove Display Name field from LLM call settings in LLMSettings component
+- [X] T041 [US1] Implement inline validation for timeout fields (1-999 range) in LLMSettings component
+- [X] T042 [US1] Implement inline validation for required model fields in LLMSettings component
+- [X] T043 [US1] Disable save button when validation errors exist in LLMSettings component
+- [X] T044 [US1] Add useEffect hook to load unified config via IPC (LLM_UNIFIED_CONFIG_GET) on mount in LLMSettings component
+- [X] T045 [US1] Implement handleSave function calling IPC (LLM_UNIFIED_CONFIG_SAVE) in LLMSettings component
+- [X] T046 [US1] Add success toast notification after successful save in LLMSettings component
+- [X] T047 [US1] Add error toast notification on save failure with validation errors in LLMSettings component
+- [X] T048 [US1] Apply default timeout values (60s for LLM call, 30s for title generation) when creating new config in LLMSettings component
 - [ ] T049 [US1] Run tests: `pnpm test tests/unit/renderer/components/settings/LLMSettings.test.tsx` and verify all 14 tests PASS (GREEN)
 
 ### Implementation: IPC Handler (GREEN Phase - 2 hours)
 
-- [ ] T050 [US1] Create src/main/handlers/llmUnifiedConfigHandler.ts file
-- [ ] T051 [US1] Implement validateUnifiedConfig function in llmUnifiedConfigHandler.ts (checks provider, models non-empty, timeouts 1-999)
-- [ ] T052 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_GET in llmUnifiedConfigHandler.ts (loads config from file system)
-- [ ] T053 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_SAVE in llmUnifiedConfigHandler.ts (validates, then saves to file system with atomic write)
-- [ ] T054 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_VALIDATE in llmUnifiedConfigHandler.ts (returns validation result without saving)
-- [ ] T055 [US1] Implement config migration logic in llmUnifiedConfigHandler.ts (reads old llm-provider.json + title-generation.json, merges, writes llm-unified.json; on error: fall back to DEFAULT_UNIFIED_CONFIG, log warning, continue app startup)
-- [ ] T056 [US1] Register all three IPC handlers in src/main/main.ts using registerUnifiedLLMConfigHandlers()
-- [ ] T057 [US1] Expose llm:unified-config:* channels in src/preload/preload.ts via window.electronAPI
+- [X] T050 [US1] Create src/main/handlers/llmUnifiedConfigHandler.ts file
+- [X] T051 [US1] Implement validateUnifiedConfig function in llmUnifiedConfigHandler.ts (checks provider, models non-empty, timeouts 1-999)
+- [X] T052 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_GET in llmUnifiedConfigHandler.ts (loads config from file system)
+- [X] T053 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_SAVE in llmUnifiedConfigHandler.ts (validates, then saves to file system with atomic write)
+- [X] T054 [US1] Implement IPC handler for LLM_UNIFIED_CONFIG_VALIDATE in llmUnifiedConfigHandler.ts (returns validation result without saving)
+- [X] T055 [US1] Implement config migration logic in llmUnifiedConfigHandler.ts (reads old llm-provider.json + title-generation.json, merges, writes llm-unified.json; on error: fall back to DEFAULT_UNIFIED_CONFIG, log warning, continue app startup)
+- [X] T056 [US1] Register all three IPC handlers in src/main/main.ts using registerUnifiedLLMConfigHandlers()
+- [X] T057 [US1] Expose llm:unified-config:* channels in src/preload/preload.ts via window.electronAPI
 - [ ] T058 [US1] Create integration test tests/integration/llm-unified-config.test.ts for IPC save/retrieve flow
 - [ ] T059 [US1] Run integration tests: `pnpm test:integration` and verify LLM unified config tests PASS
 
