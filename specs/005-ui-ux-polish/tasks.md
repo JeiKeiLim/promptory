@@ -305,12 +305,12 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Tasks
 
-- [ ] T148 Run full test suite: `pnpm test` and verify all tests pass (target: +15-20 new tests)
-- [ ] T149 Run linter: `pnpm lint` and ensure no errors
-- [ ] T150 Run type checker: `pnpm build` and ensure no TypeScript errors
+- [X] T148 Run full test suite: `pnpm test` and verify all tests pass (target: +15-20 new tests)
+- [X] T149 Run linter: `pnpm lint` and ensure no errors
+- [X] T150 Run type checker: `pnpm build` and ensure no TypeScript errors
 - [ ] T151 Run all manual test scenarios from quickstart.md (Unified LLM Settings, Favorite Toggle, Shortcut Spacing, Modal Closing)
-- [ ] T152 Update CHANGELOG.md with feature summary and breaking changes (TitleGenerationSettings.tsx removed, merged into LLMSettings.tsx)
-- [ ] T153 Update README.md if needed (document new unified LLM settings UI)
+- [X] T152 Update CHANGELOG.md with feature summary and breaking changes (TitleGenerationSettings.tsx removed, merged into LLMSettings.tsx)
+- [X] T153 Update README.md if needed (document new unified LLM settings UI)
 - [ ] T154 Generate test coverage report: `pnpm test --coverage` and verify no major regressions
 - [ ] T155 Verify constitution compliance checklist in specs/005-ui-ux-polish/plan.md (all 7 principles satisfied)
 - [ ] T156 Create Git commit with message: "feat: Implement UI/UX polish (unified LLM settings, always-visible favorites, spacing fixes, modal cleanup)"
