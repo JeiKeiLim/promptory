@@ -83,21 +83,21 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### TDD: Write Tests (RED Phase - 2 hours)
 
-- [ ] T019 [US1] Create test file tests/unit/renderer/components/settings/LLMSettings.test.tsx
-- [ ] T020 [US1] Write test: should display provider dropdown at top (verify FAILS)
-- [ ] T021 [US1] Write test: should display LLM Call Settings section with model and timeout fields (verify FAILS)
-- [ ] T022 [US1] Write test: should display Title Generation Settings section with enabled toggle, model, and timeout fields (verify FAILS)
-- [ ] T023 [US1] Write test: should display sections in single-column layout (verify FAILS)
-- [ ] T024 [US1] Write test: should validate LLM call timeout range 1-999 and show inline error (verify FAILS)
-- [ ] T025 [US1] Write test: should validate title generation timeout range 1-999 and show inline error (verify FAILS)
-- [ ] T026 [US1] Write test: should require LLM call model before enabling save button (verify FAILS)
-- [ ] T027 [US1] Write test: should require title generation model before enabling save button (verify FAILS)
-- [ ] T028 [US1] Write test: should prevent save when validation fails (verify FAILS)
-- [ ] T029 [US1] Write test: should load config via IPC on component mount (verify FAILS)
-- [ ] T030 [US1] Write test: should save unified config via IPC when save button clicked (verify FAILS)
-- [ ] T031 [US1] Write test: should apply default timeout values (60s LLM call, 30s title generation) (verify FAILS)
-- [ ] T031a [US1] Write test: should show inline validation errors when provider selected but both model fields empty (edge case: partial config) (verify FAILS)
-- [ ] T032 [US1] Run `pnpm test tests/unit/renderer/components/settings/LLMSettings.test.tsx` and confirm all 14 tests FAIL (RED)
+- [X] T019 [US1] Create test file tests/unit/renderer/components/settings/LLMSettings.test.tsx
+- [X] T020 [US1] Write test: should display provider dropdown at top (verify FAILS)
+- [X] T021 [US1] Write test: should display LLM Call Settings section with model and timeout fields (verify FAILS)
+- [X] T022 [US1] Write test: should display Title Generation Settings section with enabled toggle, model, and timeout fields (verify FAILS)
+- [X] T023 [US1] Write test: should display sections in single-column layout (verify FAILS)
+- [X] T024 [US1] Write test: should validate LLM call timeout range 1-999 and show inline error (verify FAILS)
+- [X] T025 [US1] Write test: should validate title generation timeout range 1-999 and show inline error (verify FAILS)
+- [X] T026 [US1] Write test: should require LLM call model before enabling save button (verify FAILS)
+- [X] T027 [US1] Write test: should require title generation model before enabling save button (verify FAILS)
+- [X] T028 [US1] Write test: should prevent save when validation fails (verify FAILS)
+- [X] T029 [US1] Write test: should load config via IPC on component mount (verify FAILS)
+- [X] T030 [US1] Write test: should save unified config via IPC when save button clicked (verify FAILS)
+- [X] T031 [US1] Write test: should apply default timeout values (60s LLM call, 30s title generation) (verify FAILS)
+- [X] T031a [US1] Write test: should show inline validation errors when provider selected but both model fields empty (edge case: partial config) (verify FAILS)
+- [X] T032 [US1] Run `pnpm test tests/unit/renderer/components/settings/LLMSettings.test.tsx` and confirm all 14 tests FAIL (RED)
 
 ### Implementation: Component (GREEN Phase - 4 hours)
 
