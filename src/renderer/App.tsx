@@ -16,7 +16,7 @@ const App: React.FC = () => {
   const { updateSettings, settings } = useAppStore();
   const { setProviders, setActiveProvider } = useLLMStore();
   const { i18n } = useTranslation();
-  
+
   // Set up LLM event listeners
   useLLMEvents();
 

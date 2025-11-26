@@ -11,6 +11,7 @@ import { CredentialService } from '../services/CredentialService';
 import { ParameterSubstitutionService } from '../services/ParameterSubstitutionService';
 import { RequestQueue } from '../services/RequestQueue';
 import { TokenCounter } from '../services/TokenCounter';
+import { TitleGenerationService } from '../services/TitleGenerationService';
 import { OllamaProvider } from '../services/providers/OllamaProvider';
 import { OpenAIProvider } from '../services/providers/OpenAIProvider';
 import { GeminiProvider } from '../services/providers/GeminiProvider';
@@ -52,6 +53,7 @@ let credentialService: CredentialService;
 let parameterService: ParameterSubstitutionService;
 let requestQueue: RequestQueue;
 let tokenCounter: TokenCounter;
+let titleService: TitleGenerationService;
 
 // State
 let activeProvider: LLMProviderConfig | null = null;
@@ -74,6 +76,11 @@ export async function initializeLLMHandlers(
   parameterService = new ParameterSubstitutionService();
   requestQueue = new RequestQueue();
   tokenCounter = new TokenCounter();
+  
+  // T034: Initialize TitleGenerationService with saved config from database
+  // Load saved config or use defaults if none exists
+  const titleConfig = await storageService.getTitleGenerationConfig();
+  titleService = new TitleGenerationService(titleConfig, storageService);
 
   // Clear any orphaned queue state from unexpected shutdown
   await storageService.markPendingAsCancelled();
@@ -88,6 +95,7 @@ export async function initializeLLMHandlers(
   registerResponseHandlers();
   registerModelHandlers();
   registerQueueHandlers();
+  registerTitleConfigHandlers(); // T067-T068
 }
 
 /**
@@ -535,6 +543,17 @@ async function processNextRequest(mainWindow: BrowserWindow): Promise<void> {
     responseMetadata.filePath = filePath;
     await storageService.saveResponseMetadata(responseMetadata);
 
+    // T035: Generate title for the response (BLOCKING)
+    // Per spec requirement: LLM call #1 → title #1 → LLM call #2 → title #2
+    // Title generation must complete before processing next queued LLM call
+    if (titleService) {
+      try {
+        await titleService.generateTitle(responseId, result.content);
+      } catch (err) {
+        console.error(`[Title Generation] Failed for response ${responseId}:`, err);
+      }
+    }
+
     // Emit completion event
     mainWindow.webContents.send(IPC_CHANNELS.LLM_RESPONSE_COMPLETE, {
       requestId: request.id,
@@ -754,6 +773,45 @@ function registerQueueHandlers(): void {
     }
 
     return response;
+  });
+}
+
+/**
+ * T067-T068: Title generation configuration handlers
+ */
+function registerTitleConfigHandlers(): void {
+  // Get title generation config
+  ipcMain.handle(IPC_CHANNELS.LLM_TITLE_CONFIG_GET, async () => {
+    try {
+      const config = await storageService.getTitleGenerationConfig();
+      return { success: true, config };
+    } catch (error) {
+      console.error('[Title Config] Failed to get config:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get config'
+      };
+    }
+  });
+
+  // Set title generation config
+  ipcMain.handle(IPC_CHANNELS.LLM_TITLE_CONFIG_SET, async (_, config: any) => {
+    try {
+      await storageService.updateTitleGenerationConfig(config);
+      
+      // Update TitleGenerationService configuration
+      if (titleService) {
+        titleService.updateConfig(config);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('[Title Config] Failed to set config:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to set config'
+      };
+    }
   });
 }
 

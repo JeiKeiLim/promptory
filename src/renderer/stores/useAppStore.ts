@@ -91,7 +91,7 @@ export interface AppStore {
   // 설정창
   settingsModal: {
     isOpen: boolean;
-    activeTab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm';
+    activeTab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm' | 'titleGen';
   };
   
   // 설정
@@ -128,7 +128,7 @@ export interface AppStore {
   // 설정창 관리
   showSettingsModal: (tab?: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm') => void;
   hideSettingsModal: () => void;
-  setSettingsTab: (tab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm') => void;
+  setSettingsTab: (tab: 'general' | 'editor' | 'search' | 'shortcuts' | 'window' | 'llm' | 'titleGen') => void;
   
   // 설정 관리
   updateSettings: (settings: Partial<AppSettings>) => void;

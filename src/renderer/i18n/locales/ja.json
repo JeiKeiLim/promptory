@@ -104,8 +104,6 @@
     "noParams": "このプロンプトにはパラメータがありません。",
     "copyDirectly": "そのままコピーして使用してください！",
     "selectOption": "選択",
-    "copying": "コピー中...",
-    "copyToClipboard": "クリップボードにコピー",
     "backToParameters": "パラメータに戻る"
   },
   "parameterEditor": {
@@ -146,16 +144,17 @@
     "clear": "クリア"
   },
   "inputDialog": {
-    "confirm": "確認"
+    "confirm": "確認",
+    "cancel": "キャンセル"
   },
   "settings": {
-    "title": "設定",
     "general": "一般",
     "editor": "エディタ",
     "search": "検索",
     "shortcuts": "ショートカット",
     "window": "ウィンドウ",
     "llm": "LLM統合",
+    "titleGen": "タイトル自動生成",
     "appName": "アプリケーション名",
     "language": "言語",
     "korean": "한국어",
@@ -237,7 +236,22 @@
     "appNameLabel": "アプリ名",
     "version": "バージョン",
     "platform": "プラットフォーム",
-    "userAgent": "ユーザーエージェント"
+    "userAgent": "ユーザーエージェント",
+    "settingsTitle": "設定",
+    "title": {
+      "heading": "自動タイトル生成",
+      "description": "LLMレスポンスの説明的なタイトルを自動生成します",
+      "enabled": "タイトル生成を有効にする",
+      "enabledDesc": "すべてのレスポンスに対して自動的にタイトルを生成します",
+      "model": "タイトル生成モデル",
+      "modelDesc": "高速なタイトル生成のため、軽量モデルを推奨します",
+      "provider": "プロバイダー",
+      "timeout": "タイムアウト（秒）",
+      "timeoutDesc": "10秒から120秒の間",
+      "saved": "タイトル生成設定が保存されました",
+      "saveError": "設定の保存に失敗しました",
+      "loadError": "設定の読み込みに失敗しました"
+    }
   },
   "confirm": {
     "saveChanges": "変更を保存",
@@ -264,21 +278,26 @@
     "loadFailed": "ファイルの読み込み中にエラーが発生しました",
     "saveFailed": "保存に失敗しました"
   },
-  "inputDialog": {
-    "confirm": "確認",
-    "cancel": "キャンセル"
-  },
   "titleBar": {
     "settings": "設定",
     "minimize": "最小化",
     "maximize": "最大化",
     "close": "閉じる"
   },
+  "common": {
+    "save": "変更を保存",
+    "saving": "保存中..."
+  },
   "llm": {
     "call": {
       "callLLM": "LLM呼び出し",
       "calling": "呼び出し中...",
       "queued": "LLMリクエストがキューに追加されました"
+    },
+    "time": {
+      "justNow": "たった今",
+      "minutesAgo": "{{count}}分前",
+      "hoursAgo": "{{count}}時間前"
     },
     "queue": {
       "size": "キュー: {{count}}件",

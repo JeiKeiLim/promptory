@@ -27,6 +27,9 @@ interface LLMState {
   // Badge counters (per-prompt new results)
   newResultsCount: Record<string, number>; // promptId -> count
   
+  // T048: Title generation loading state (responseId -> boolean)
+  titleGenerationLoading: Map<string, boolean>;
+  
   // Provider actions
   setProviders: (providers: LLMProviderConfig[]) => void;
   setActiveProvider: (provider: LLMProviderConfig | null) => void;
@@ -43,6 +46,13 @@ interface LLMState {
   clearNewResults: (promptId: string) => void;
   resetNewResults: () => void;
   getNewResultsCount: (promptId: string) => number;
+  
+  // T049: Title update action
+  updateResponseTitle: (responseId: string, title: string) => void;
+  
+  // T050: Title loading state actions
+  setTitleLoading: (responseId: string, loading: boolean) => void;
+  getTitleLoading: (responseId: string) => boolean;
 }
 
 export const useLLMStore = create<LLMState>((set, get) => ({
@@ -52,6 +62,7 @@ export const useLLMStore = create<LLMState>((set, get) => ({
   queueSize: 0,
   currentRequest: null,
   newResultsCount: {},
+  titleGenerationLoading: new Map(),
   
   // Provider actions
   setProviders: (providers) => set({ providers }),
@@ -99,6 +110,28 @@ export const useLLMStore = create<LLMState>((set, get) => ({
   getNewResultsCount: (promptId) => {
     const state = get();
     return state.newResultsCount[promptId] || 0;
+  },
+  
+  // T049: Title update action (placeholder - actual updates come from IPC events)
+  updateResponseTitle: (responseId, title) => {
+    // This will be used in conjunction with response reload
+    console.log(`[Store] Title updated for ${responseId}: ${title}`);
+  },
+  
+  // T050: Title loading state actions
+  setTitleLoading: (responseId, loading) => set((state) => {
+    const newMap = new Map(state.titleGenerationLoading);
+    if (loading) {
+      newMap.set(responseId, true);
+    } else {
+      newMap.delete(responseId);
+    }
+    return { titleGenerationLoading: newMap };
+  }),
+  
+  getTitleLoading: (responseId) => {
+    const state = get();
+    return state.titleGenerationLoading.get(responseId) || false;
   }
 }));
 

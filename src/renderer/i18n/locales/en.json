@@ -91,7 +91,7 @@
     "close": "Close",
     "fillRequired": "Please fill in all required parameters.",
     "copying": "Copying...",
-    "copyToClipboard": "Copy to clipboard",
+    "copyToClipboard": "Copy to Clipboard",
     "noContent": "Nothing to copy",
     "copySuccess": "Prompt copied to clipboard!",
     "copyFailed": "Failed to copy to clipboard",
@@ -104,8 +104,6 @@
     "noParams": "This prompt has no parameters.",
     "copyDirectly": "Copy and use directly!",
     "selectOption": "Select",
-    "copying": "Copying...",
-    "copyToClipboard": "Copy to Clipboard",
     "backToParameters": "Back to Parameters"
   },
   "parameterEditor": {
@@ -146,16 +144,17 @@
     "clear": "Clear"
   },
   "inputDialog": {
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "settings": {
-    "title": "Settings",
     "general": "General",
     "editor": "Editor",
     "search": "Search",
     "shortcuts": "Shortcuts",
     "window": "Window",
     "llm": "LLM Integration",
+    "titleGen": "Title Generation",
     "appName": "Application Name",
     "language": "Language",
     "korean": "한국어",
@@ -237,7 +236,22 @@
     "appNameLabel": "App Name",
     "version": "Version",
     "platform": "Platform",
-    "userAgent": "User Agent"
+    "userAgent": "User Agent",
+    "settingsTitle": "Settings",
+    "title": {
+      "heading": "Automatic Title Generation",
+      "description": "Automatically generate descriptive titles for LLM responses",
+      "enabled": "Enable Title Generation",
+      "enabledDesc": "Generate titles automatically for all responses",
+      "model": "Title Generation Model",
+      "modelDesc": "Lighter models recommended for faster titles",
+      "provider": "Provider",
+      "timeout": "Timeout (seconds)",
+      "timeoutDesc": "Between 10 and 120 seconds",
+      "saved": "Title generation settings saved",
+      "saveError": "Failed to save settings",
+      "loadError": "Failed to load settings"
+    }
   },
   "confirm": {
     "saveChanges": "Save Changes",
@@ -264,21 +278,26 @@
     "loadFailed": "An error occurred while loading file",
     "saveFailed": "Save failed"
   },
-  "inputDialog": {
-    "confirm": "Confirm",
-    "cancel": "Cancel"
-  },
   "titleBar": {
     "settings": "Settings",
     "minimize": "Minimize",
     "maximize": "Maximize",
     "close": "Close"
   },
+  "common": {
+    "save": "Save Changes",
+    "saving": "Saving..."
+  },
   "llm": {
     "call": {
       "callLLM": "Call LLM",
       "calling": "Calling...",
       "queued": "LLM request queued successfully"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago"
     },
     "queue": {
       "size": "Queue: {{count}}",

@@ -1,6 +1,6 @@
 {
   "name": "promptory",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "LLM Prompt 관리 데스크탑 애플리케이션",
   "main": "dist/main/main.js",
   "scripts": {

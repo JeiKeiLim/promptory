@@ -101,11 +101,47 @@ export class LLMStorageService {
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_prompt_id ON llm_responses(prompt_id)',
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_created_at ON llm_responses(created_at DESC)',
       'CREATE INDEX IF NOT EXISTS idx_llm_responses_status ON llm_responses(status)',
-      'CREATE INDEX IF NOT EXISTS idx_llm_responses_provider ON llm_responses(provider)'
+      'CREATE INDEX IF NOT EXISTS idx_llm_responses_provider ON llm_responses(provider)',
+      'CREATE INDEX IF NOT EXISTS idx_llm_responses_title_status ON llm_responses(title_generation_status)'
     ];
 
     await this.runQuery(providerTableSQL);
     await this.runQuery(responsesTableSQL);
+    
+    // T011: Create title generation config table
+    const titleConfigTableSQL = `
+      CREATE TABLE IF NOT EXISTS title_generation_config (
+        id INTEGER PRIMARY KEY CHECK(id = 1),
+        enabled INTEGER NOT NULL DEFAULT 1,
+        selected_model TEXT NOT NULL DEFAULT 'gemma3:1b',
+        selected_provider TEXT NOT NULL DEFAULT 'ollama',
+        timeout_seconds INTEGER NOT NULL DEFAULT 30,
+        updated_at INTEGER NOT NULL
+      )
+    `;
+    await this.runQuery(titleConfigTableSQL);
+    
+    // Add title generation columns if they don't exist (backward compatibility)
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN generated_title TEXT`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_generation_status TEXT CHECK(title_generation_status IN ('pending', 'completed', 'failed'))`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_generated_at INTEGER`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+    try {
+      await this.runQuery(`ALTER TABLE llm_responses ADD COLUMN title_model TEXT`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
     
     for (const idx of indexSQL) {
       await this.runQuery(idx);
@@ -264,8 +300,9 @@ export class LLMStorageService {
         id, prompt_id, provider, model, parameters,
         created_at, response_time_ms,
         token_usage_prompt, token_usage_completion, token_usage_total,
-        cost_estimate, status, file_path, error_code, error_message
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        cost_estimate, status, file_path, error_code, error_message,
+        generated_title, title_generation_status, title_generated_at, title_model
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await this.runQuery(sql, [
@@ -283,7 +320,11 @@ export class LLMStorageService {
       metadata.status,
       metadata.filePath,
       metadata.errorCode || null,
-      metadata.errorMessage || null
+      metadata.errorMessage || null,
+      metadata.generatedTitle || null,
+      metadata.titleGenerationStatus || null,
+      metadata.titleGeneratedAt || null,
+      metadata.titleModel || null
     ]);
   }
 
@@ -294,6 +335,19 @@ export class LLMStorageService {
     );
 
     return row ? this.mapResponseMetadata(row) : null;
+  }
+
+  // T030: Convenience methods for saveResponse/getResponse (alias for saveResponseMetadata/getResponseMetadata)
+  async saveResponse(metadata: LLMResponseMetadata): Promise<void> {
+    return this.saveResponseMetadata(metadata);
+  }
+
+  async getResponse(id: string): Promise<LLMResponseMetadata | null> {
+    return this.getResponseMetadata(id);
+  }
+
+  async getResponseHistory(promptId: string): Promise<LLMResponseMetadata[]> {
+    return this.listResponseMetadata(promptId);
   }
 
   async listResponseMetadata(promptId: string): Promise<LLMResponseMetadata[]> {
@@ -424,6 +478,12 @@ export class LLMStorageService {
     if (row.cost_estimate) metadata.costEstimate = row.cost_estimate;
     if (row.error_code) metadata.errorCode = row.error_code;
     if (row.error_message) metadata.errorMessage = row.error_message;
+    
+    // T030: Map title fields
+    if (row.generated_title) metadata.generatedTitle = row.generated_title;
+    if (row.title_generation_status) metadata.titleGenerationStatus = row.title_generation_status;
+    if (row.title_generated_at) metadata.titleGeneratedAt = row.title_generated_at;
+    if (row.title_model) metadata.titleModel = row.title_model;
 
     return metadata;
   }
@@ -490,7 +550,12 @@ export class LLMStorageService {
       ...(metadata.costEstimate !== undefined && { cost_estimate: metadata.costEstimate }),
       status: metadata.status,
       ...(metadata.errorCode && { error_code: metadata.errorCode }),
-      ...(metadata.errorMessage && { error_message: metadata.errorMessage })
+      ...(metadata.errorMessage && { error_message: metadata.errorMessage }),
+      // T031: Add title fields to markdown frontmatter
+      ...(metadata.generatedTitle && { generated_title: metadata.generatedTitle }),
+      ...(metadata.titleGenerationStatus && { title_generation_status: metadata.titleGenerationStatus }),
+      ...(metadata.titleGeneratedAt && { title_generated_at: new Date(metadata.titleGeneratedAt).toISOString() }),
+      ...(metadata.titleModel && { title_model: metadata.titleModel })
     };
 
     // Generate YAML for all fields except prompt
@@ -588,6 +653,127 @@ export class LLMStorageService {
       console.warn(`[LLM Storage] Failed to parse frontmatter for ${filePath}, returning raw content:`, error);
       return fileContent;
     }
+  }
+
+  /**
+   * Update markdown file frontmatter with title generation metadata
+   * This method reads the existing markdown file, updates the frontmatter with title fields,
+   * and writes it back
+   */
+  async updateResponseTitle(responseId: string): Promise<void> {
+    // Get response metadata (which should already be updated with title)
+    const metadata = await this.getResponseMetadata(responseId);
+    if (!metadata || !metadata.filePath) {
+      throw new Error(`Response ${responseId} not found or has no file path`);
+    }
+
+    // Validate path
+    this.pathValidator.validatePath(metadata.filePath);
+    
+    const fullPath = path.join(this.resultsPath, metadata.filePath);
+
+    // Read existing file
+    const fileContent = await fs.readFile(fullPath, 'utf-8');
+    
+    // Parse frontmatter and content
+    const { yamlHeader, content } = separateYamlAndContent(fileContent);
+    
+    // Parse YAML to object
+    const frontmatter = yaml.load(yamlHeader) as any;
+    
+    // Update frontmatter with title fields
+    if (metadata.generatedTitle) {
+      frontmatter.generated_title = metadata.generatedTitle;
+    }
+    if (metadata.titleGenerationStatus) {
+      frontmatter.title_generation_status = metadata.titleGenerationStatus;
+    }
+    if (metadata.titleGeneratedAt) {
+      frontmatter.title_generated_at = new Date(metadata.titleGeneratedAt).toISOString();
+    }
+    if (metadata.titleModel) {
+      frontmatter.title_model = metadata.titleModel;
+    }
+
+    // Generate updated frontmatter YAML
+    const updatedYaml = yaml.dump(frontmatter, {
+      indent: 2,
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: false
+    });
+
+    // Reconstruct file with updated frontmatter
+    const updatedContent = `---\n${updatedYaml}---\n\n${content}`;
+    
+    // Write back to file
+    await fs.writeFile(fullPath, updatedContent, 'utf-8');
+  }
+
+  // ==================== Title Generation Config ====================
+
+  /**
+   * T065: Get title generation configuration
+   */
+  async getTitleGenerationConfig(): Promise<any> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    return new Promise((resolve, reject) => {
+      this.db!.get(
+        'SELECT * FROM title_generation_config WHERE id = 1',
+        (err, row: any) => {
+          if (err) {
+            reject(err);
+          } else if (row) {
+            resolve({
+              enabled: row.enabled === 1,
+              selectedModel: row.selected_model,
+              selectedProvider: row.selected_provider,
+              timeoutSeconds: row.timeout_seconds
+            });
+          } else {
+            // Return default config
+            resolve({
+              enabled: true,
+              selectedModel: 'gemma3:1b',
+              selectedProvider: 'ollama',
+              timeoutSeconds: 30
+            });
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * T066: Update title generation configuration with validation
+   */
+  async updateTitleGenerationConfig(config: any): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // T062: Validate timeout (10-120 seconds)
+    if (config.timeoutSeconds < 10 || config.timeoutSeconds > 120) {
+      throw new Error('Timeout must be between 10 and 120 seconds');
+    }
+
+    return new Promise((resolve, reject) => {
+      this.db!.run(
+        `INSERT OR REPLACE INTO title_generation_config 
+         (id, enabled, selected_model, selected_provider, timeout_seconds, updated_at)
+         VALUES (1, ?, ?, ?, ?, ?)`,
+        [
+          config.enabled ? 1 : 0,
+          config.selectedModel,
+          config.selectedProvider,
+          config.timeoutSeconds,
+          Date.now()
+        ],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
   }
 
   // ==================== Cleanup ====================

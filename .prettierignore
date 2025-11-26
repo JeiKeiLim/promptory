@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Electron build outputs
+release/
+out/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Auto-generated files
+*.auto.ts
+*.auto.js
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Test results
+test-results/
+playwright-report/
+
+# Cache
+.cache
+.parcel-cache

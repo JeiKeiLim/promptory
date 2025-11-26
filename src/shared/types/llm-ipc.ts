@@ -174,3 +174,13 @@ export interface LLMRequestProgressEvent {
   };
 }
 
+// ==================== Title Generation ====================
+
+export interface TitleStatusEvent {
+  responseId: string;
+  status: 'pending' | 'completed' | 'failed';
+  title?: string;
+  generatedAt?: number;
+  model?: string;
+  error?: string; // T094: Error message for failed status
+}

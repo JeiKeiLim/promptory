@@ -67,6 +67,10 @@ export const IPC_CHANNELS = {
   // LLM 모델 관리
   LLM_MODELS_LIST: 'llm:models:list',
   
+  // T067-T068: Title generation configuration
+  LLM_TITLE_CONFIG_GET: 'llm:title:config:get',
+  LLM_TITLE_CONFIG_SET: 'llm:title:config:set',
+  
   // LLM 큐 상태
   LLM_GET_QUEUE_STATUS: 'llm:getQueueStatus',
   
@@ -74,6 +78,7 @@ export const IPC_CHANNELS = {
   LLM_RESPONSE_COMPLETE: 'llm:response:complete',
   LLM_QUEUE_UPDATED: 'llm:queue:updated',
   LLM_REQUEST_PROGRESS: 'llm:request:progress',
+  LLM_TITLE_STATUS: 'llm:title:status',
   
   // 이벤트
   FILE_ERROR: 'file:error',
@@ -89,5 +94,6 @@ export const ALLOWED_EVENTS = [
   IPC_CHANNELS.FILE_ERROR,
   IPC_CHANNELS.LLM_RESPONSE_COMPLETE,
   IPC_CHANNELS.LLM_QUEUE_UPDATED,
-  IPC_CHANNELS.LLM_REQUEST_PROGRESS
+  IPC_CHANNELS.LLM_REQUEST_PROGRESS,
+  IPC_CHANNELS.LLM_TITLE_STATUS
 ];
