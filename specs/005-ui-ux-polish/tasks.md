@@ -212,12 +212,12 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Refactor & Polish (REFACTOR Phase - 30 minutes)
 
-- [ ] T108 [US2] Extract debounce logic into custom hook src/renderer/hooks/useDebouncedFavoriteToggle.ts (interface: `useDebouncedFavoriteToggle(delay: number) => (promptId: string, newState: boolean) => void`)
-- [ ] T109 [US2] Verify filled vs outline StarIcon usage (24/solid for filled, 24/outline for empty)
+- [X] T108 [US2] Extract debounce logic into custom hook src/renderer/hooks/useDebouncedFavoriteToggle.ts (interface: `useDebouncedFavoriteToggle(delay: number) => (promptId: string, newState: boolean) => void`)
+- [X] T109 [US2] Verify filled vs outline StarIcon usage (24/solid for filled, 24/outline for empty)
 - [ ] T110 [US2] Test favorite toggle on all prompt cards in list (scroll and verify all have stars)
 - [ ] T111 [US2] Verify keyboard accessibility (Tab to focus star, Enter/Space to toggle)
-- [ ] T112 [US2] Run linter: `pnpm lint` and fix any issues
-- [ ] T113 [US2] Run full test suite: `pnpm test` and verify all tests PASS after refactoring
+- [X] T112 [US2] Run linter: `pnpm lint` and fix any issues
+- [X] T113 [US2] Run full test suite: `pnpm test` and verify all tests PASS after refactoring
 
 ---
 
