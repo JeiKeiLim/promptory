@@ -134,10 +134,10 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Implementation: Settings Modal Integration (GREEN Phase - 1 hour)
 
-- [ ] T060 [US1] Update src/renderer/components/settings/SettingsModal.tsx to remove TitleGenerationSettings tab
-- [ ] T061 [US1] Verify LLM Settings tab in SettingsModal.tsx now shows unified LLMSettings component
-- [ ] T062 [US1] Delete src/renderer/components/settings/TitleGenerationSettings.tsx file (functionality merged into LLMSettings)
-- [ ] T063 [US1] Run full test suite: `pnpm test` and verify no regressions
+- [X] T060 [US1] Update src/renderer/components/settings/SettingsModal.tsx to remove TitleGenerationSettings tab
+- [X] T061 [US1] Verify LLM Settings tab in SettingsModal.tsx now shows unified LLMSettings component
+- [X] T062 [US1] Delete src/renderer/components/settings/TitleGenerationSettings.tsx file (functionality merged into LLMSettings)
+- [X] T063 [US1] Run full test suite: `pnpm test` and verify no regressions
 
 ### Refactor & Polish (REFACTOR Phase - 1 hour)
 

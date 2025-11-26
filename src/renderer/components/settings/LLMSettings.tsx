@@ -11,13 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LLMProviderType, UnifiedLLMConfig } from '@shared/types/llm';
 import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
-
-interface ValidationErrors {
-  llmModel?: string;
-  llmTimeout?: string;
-  titleModel?: string;
-  titleTimeout?: string;
-}
+import { validateUnifiedLLMConfig, hasValidationErrors, ValidationErrors } from '@renderer/utils/validation';
 
 const DEFAULT_UNIFIED_CONFIG: UnifiedLLMConfig = {
   provider: 'ollama',
@@ -90,30 +84,15 @@ export const LLMSettings: React.FC = () => {
 
   // Validation function
   const validateConfig = (): boolean => {
-    const errors: ValidationErrors = {};
-
-    // Validate LLM model (required)
-    if (!llmModel || llmModel.trim() === '') {
-      errors.llmModel = 'LLM model is required';
-    }
-
-    // Validate LLM timeout (1-999)
-    if (llmTimeout < 1 || llmTimeout > 999) {
-      errors.llmTimeout = 'Timeout must be between 1 and 999 seconds';
-    }
-
-    // Validate title model (required)
-    if (!titleModel || titleModel.trim() === '') {
-      errors.titleModel = 'Title model is required';
-    }
-
-    // Validate title timeout (1-999)
-    if (titleTimeout < 1 || titleTimeout > 999) {
-      errors.titleTimeout = 'Timeout must be between 1 and 999 seconds';
-    }
-
+    const errors = validateUnifiedLLMConfig({
+      llmModel,
+      llmTimeout,
+      titleModel,
+      titleTimeout
+    });
+    
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return !hasValidationErrors(errors);
   };
 
   // Run validation when inputs change
@@ -186,7 +165,7 @@ export const LLMSettings: React.FC = () => {
     }
   };
 
-  const isFormValid = Object.keys(validationErrors).length === 0;
+  const isFormValid = !hasValidationErrors(validationErrors);
 
   return (
     <div className="space-y-6">
