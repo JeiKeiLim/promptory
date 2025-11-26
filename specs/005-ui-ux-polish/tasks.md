@@ -164,49 +164,49 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### TDD: Write Tests (RED Phase - 1 hour)
 
-- [ ] T072 [US2] Create test file tests/unit/renderer/components/common/FavoriteStar.test.tsx
-- [ ] T073 [US2] Write test: should display filled star when isFavorite is true (verify FAILS)
-- [ ] T074 [US2] Write test: should display empty star when isFavorite is false (verify FAILS)
-- [ ] T075 [US2] Write test: should have aria-label for accessibility (verify FAILS)
-- [ ] T076 [US2] Write test: should call onToggle with promptId when clicked (verify FAILS)
-- [ ] T077 [US2] Create test file tests/integration/ui/favorite-toggle.test.tsx
-- [ ] T078 [US2] Write integration test: should persist favorite status via IPC after 300ms debounce (verify FAILS)
-- [ ] T079 [US2] Write integration test: should rollback optimistic update on IPC failure and show error toast (verify FAILS)
-- [ ] T080 [US2] Write integration test: should debounce rapid clicks and only send final state (verify FAILS)
-- [ ] T081 [US2] Run tests: `pnpm test tests/unit/renderer/components/common/FavoriteStar.test.tsx tests/integration/ui/favorite-toggle.test.tsx` and confirm all FAIL (RED)
+- [X] T072 [US2] Create test file tests/unit/renderer/components/common/FavoriteStar.test.tsx
+- [X] T073 [US2] Write test: should display filled star when isFavorite is true (verify FAILS)
+- [X] T074 [US2] Write test: should display empty star when isFavorite is false (verify FAILS)
+- [X] T075 [US2] Write test: should have aria-label for accessibility (verify FAILS)
+- [X] T076 [US2] Write test: should call onToggle with promptId when clicked (verify FAILS)
+- [X] T077 [US2] Create test file tests/integration/ui/favorite-toggle.test.tsx
+- [X] T078 [US2] Write integration test: should persist favorite status via IPC after 300ms debounce (verify FAILS)
+- [X] T079 [US2] Write integration test: should rollback optimistic update on IPC failure and show error toast (verify FAILS)
+- [X] T080 [US2] Write integration test: should debounce rapid clicks and only send final state (verify FAILS)
+- [X] T081 [US2] Run tests: `pnpm test tests/unit/renderer/components/common/FavoriteStar.test.tsx tests/integration/ui/favorite-toggle.test.tsx` and confirm all FAIL (RED)
 
 ### Implementation: FavoriteStar Component (GREEN Phase - 2 hours)
 
-- [ ] T082 [P] [US2] Create src/renderer/components/common/FavoriteStar.tsx component file
-- [ ] T083 [US2] Implement FavoriteStar component with props (promptId: string, isFavorite: boolean, onToggle: function)
-- [ ] T084 [US2] Add StarIcon from @heroicons/react/24/outline to FavoriteStar component
-- [ ] T085 [US2] Implement conditional styling: filled (fill-yellow-400 stroke-yellow-500) when isFavorite=true, empty (fill-none stroke-gray-400) when false in FavoriteStar component
-- [ ] T086 [US2] Add onClick handler that calls onToggle(promptId, isFavorite) in FavoriteStar component
-- [ ] T087 [US2] Add e.stopPropagation() to prevent triggering parent click handlers in FavoriteStar component
-- [ ] T088 [US2] Add aria-label: "Add to favorites" when empty, "Remove from favorites" when filled in FavoriteStar component
-- [ ] T089 [US2] Add aria-pressed attribute reflecting isFavorite state in FavoriteStar component
-- [ ] T090 [US2] Add hover effect (hover:bg-gray-100) to button in FavoriteStar component
+- [X] T082 [P] [US2] Create src/renderer/components/common/FavoriteStar.tsx component file
+- [X] T083 [US2] Implement FavoriteStar component with props (promptId: string, isFavorite: boolean, onToggle: function)
+- [X] T084 [US2] Add StarIcon from @heroicons/react/24/outline to FavoriteStar component
+- [X] T085 [US2] Implement conditional styling: filled (fill-yellow-400 stroke-yellow-500) when isFavorite=true, empty (fill-none stroke-gray-400) when false in FavoriteStar component
+- [X] T086 [US2] Add onClick handler that calls onToggle(promptId, isFavorite) in FavoriteStar component
+- [X] T087 [US2] Add e.stopPropagation() to prevent triggering parent click handlers in FavoriteStar component
+- [X] T088 [US2] Add aria-label: "Add to favorites" when empty, "Remove from favorites" when filled in FavoriteStar component
+- [X] T089 [US2] Add aria-pressed attribute reflecting isFavorite state in FavoriteStar component
+- [X] T090 [US2] Add hover effect (hover:bg-gray-100) to button in FavoriteStar component
 - [ ] T091 [US2] Run unit tests: `pnpm test tests/unit/renderer/components/common/FavoriteStar.test.tsx` and verify PASS (GREEN)
 
 ### Implementation: MainContent Integration (GREEN Phase - 1.5 hours)
 
-- [ ] T092 [US2] Add debounced toggle handler to src/renderer/components/layout/MainContent.tsx using Map<promptId, debounce function> (300ms delay)
-- [ ] T093 [US2] Implement optimistic UI update in toggle handler in MainContent.tsx (immediately update local state)
-- [ ] T094 [US2] Implement IPC call to PROMPT_UPDATE_FAVORITE in debounced function in MainContent.tsx
-- [ ] T095 [US2] Implement rollback logic on IPC failure in MainContent.tsx (revert local state to original value)
-- [ ] T096 [US2] Add error toast notification on IPC failure in MainContent.tsx
-- [ ] T097 [US2] Update prompt card rendering in MainContent.tsx to always show FavoriteStar component (remove conditional `{favorite && <star/>}`)
-- [ ] T098 [US2] Position FavoriteStar in top-right corner using `absolute top-2 right-2 z-10` in MainContent.tsx prompt card
-- [ ] T099 [US2] Pass promptId, isFavorite, and handleToggle to FavoriteStar component in MainContent.tsx
+- [X] T092 [US2] Add debounced toggle handler to src/renderer/components/layout/MainContent.tsx using Map<promptId, debounce function> (300ms delay)
+- [X] T093 [US2] Implement optimistic UI update in toggle handler in MainContent.tsx (immediately update local state)
+- [X] T094 [US2] Implement IPC call to PROMPT_UPDATE_FAVORITE in debounced function in MainContent.tsx
+- [X] T095 [US2] Implement rollback logic on IPC failure in MainContent.tsx (revert local state to original value)
+- [X] T096 [US2] Add error toast notification on IPC failure in MainContent.tsx
+- [X] T097 [US2] Update prompt card rendering in MainContent.tsx to always show FavoriteStar component (remove conditional `{favorite && <star/>}`)
+- [X] T098 [US2] Position FavoriteStar in top-right corner using `absolute top-2 right-2 z-10` in MainContent.tsx prompt card
+- [X] T099 [US2] Pass promptId, isFavorite, and handleToggle to FavoriteStar component in MainContent.tsx
 - [ ] T100 [US2] Run integration tests: `pnpm test tests/integration/ui/favorite-toggle.test.tsx` and verify PASS (GREEN)
 
 ### Implementation: IPC Handler (GREEN Phase - 1 hour)
 
-- [ ] T101 [US2] Add PROMPT_UPDATE_FAVORITE IPC handler to src/main/handlers/promptHandler.ts
-- [ ] T102 [US2] Implement handler: load prompt file by path, parse YAML front matter, update favorite field in promptHandler.ts
-- [ ] T103 [US2] Implement atomic file write (write to .tmp file, then rename) in promptHandler.ts
-- [ ] T104 [US2] Add error handling for file not found, permission errors, YAML parse errors in promptHandler.ts
-- [ ] T105 [US2] Expose prompt:update-favorite channel in src/preload/preload.ts via window.electronAPI
+- [X] T101 [US2] Add PROMPT_UPDATE_FAVORITE IPC handler to src/main/handlers/promptHandler.ts
+- [X] T102 [US2] Implement handler: load prompt file by path, parse YAML front matter, update favorite field in promptHandler.ts
+- [X] T103 [US2] Implement atomic file write (write to .tmp file, then rename) in promptHandler.ts
+- [X] T104 [US2] Add error handling for file not found, permission errors, YAML parse errors in promptHandler.ts
+- [X] T105 [US2] Expose prompt:update-favorite channel in src/preload/preload.ts via window.electronAPI
 - [ ] T106 [US2] Verify file watcher (Chokidar) detects file changes and updates Zustand store (existing mechanism)
 - [ ] T107 [US2] Run full integration test suite: `pnpm test:integration` and verify all favorite toggle tests PASS
 

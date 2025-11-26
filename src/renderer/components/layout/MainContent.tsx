@@ -2,14 +2,16 @@
  * 중앙 메인 콘텐츠 (프롬프트 목록)
  */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { SearchBar } from '@renderer/components/search/SearchBar';
+import { FavoriteStar } from '@renderer/components/common/FavoriteStar';
 import { useTranslation } from 'react-i18next';
 import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
 import { LLMBadge } from '@renderer/components/llm/LLMBadge';
+import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
 
 export const MainContent: React.FC = () => {
   const { t } = useTranslation();
@@ -27,6 +29,74 @@ export const MainContent: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // T092-T096: Debounced favorite toggle with optimistic UI and rollback
+  const debounceTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const originalStatesRef = useRef<Map<string, boolean>>(new Map());
+  
+  // Handle favorite toggle with debouncing (300ms)
+  const handleFavoriteToggle = useCallback(async (promptId: string, currentState: boolean) => {
+    // T093: Optimistic UI update - store original state for rollback
+    if (!originalStatesRef.current.has(promptId)) {
+      originalStatesRef.current.set(promptId, currentState);
+    }
+
+    // Cancel pending debounce timer for this prompt
+    const existingTimer = debounceTimersRef.current.get(promptId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    // New desired state is opposite of current
+    const newState = !currentState;
+
+    // Set new debounce timer
+    const timer = setTimeout(async () => {
+      try {
+        // T094: Call IPC to persist favorite status
+        const result = await window.electronAPI.invoke(IPC_CHANNELS.PROMPT_UPDATE_FAVORITE, {
+          id: promptId,
+          favorite: newState,
+        });
+
+        if (result.success) {
+          // Success - clear original state tracking
+          originalStatesRef.current.delete(promptId);
+          debounceTimersRef.current.delete(promptId);
+        } else {
+          throw new Error(result.error || 'Failed to update favorite');
+        }
+      } catch (error) {
+        // T095: Rollback on failure
+        const originalState = originalStatesRef.current.get(promptId);
+        if (originalState !== undefined) {
+          // Revert to original state in the store
+          const prompt = prompts.find((p) => p.id === promptId);
+          if (prompt) {
+            prompt.metadata.favorite = originalState;
+          }
+        }
+
+        // T096: Show error notification
+        toast.error(t('errors.favoriteFailed', 'Failed to update favorite status'));
+        
+        // Clean up
+        originalStatesRef.current.delete(promptId);
+        debounceTimersRef.current.delete(promptId);
+        
+        console.error('Failed to toggle favorite:', error);
+      }
+    }, 300); // 300ms debounce
+
+    debounceTimersRef.current.set(promptId, timer);
+  }, [prompts, t]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      debounceTimersRef.current.forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
   
   // 검색이 활성화되어 있으면 검색 결과를, 아니면 필터된 프롬프트를 사용
   const displayPrompts = isSearchActive ? searchResults : getFilteredPrompts();
@@ -224,7 +294,7 @@ export const MainContent: React.FC = () => {
               <div
                 key={prompt.id}
                 onClick={() => handlePromptClick(prompt)}
-                className={`p-3 rounded-lg border cursor-pointer card-hover list-item-enter ${
+                className={`p-3 rounded-lg border cursor-pointer card-hover list-item-enter relative ${
                   selectedPrompt?.id === prompt.id
                     ? 'bg-blue-50 border-blue-300 shadow-md'
                     : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
@@ -233,7 +303,16 @@ export const MainContent: React.FC = () => {
                   animationDelay: `${index * 0.05}s`
                 }}
               >
-                <div className="flex items-start justify-between">
+                {/* T098: Position FavoriteStar in top-right corner */}
+                <div className="absolute top-2 right-2 z-10">
+                  <FavoriteStar
+                    promptId={prompt.id}
+                    isFavorite={prompt.metadata.favorite || false}
+                    onToggle={handleFavoriteToggle}
+                  />
+                </div>
+                
+                <div className="flex items-start justify-between pr-10">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-gray-900 truncate">
@@ -259,9 +338,6 @@ export const MainContent: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {prompt.metadata.favorite && (
-                    <div className="ml-2 text-yellow-500">⭐</div>
-                  )}
                 </div>
               </div>
             ))}
