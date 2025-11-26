@@ -164,4 +164,66 @@ describe('TitleGenerationService', () => {
       }
     });
   });
+
+  // Test for configuration validation and persistence (Bug fix: model undefined after re-enable)
+  describe('configuration validation and persistence', () => {
+    it('should validate model is defined when enabling title generation', () => {
+      const invalidConfig: TitleGenerationConfig = {
+        enabled: true,
+        selectedModel: '', // Invalid: empty model
+        selectedProvider: 'ollama',
+        timeoutSeconds: 30
+      };
+      
+      service.updateConfig(invalidConfig);
+      
+      // Attempting to generate title should fail with clear error
+      return service.generateTitle('test-id', 'test content').then(result => {
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      });
+    });
+
+    it('should preserve model configuration when toggling enabled status', () => {
+      // Start with valid config
+      const validConfig: TitleGenerationConfig = {
+        enabled: true,
+        selectedModel: 'gemma3:1b',
+        selectedProvider: 'ollama',
+        timeoutSeconds: 30
+      };
+      
+      service.updateConfig(validConfig);
+      
+      // Disable
+      service.updateConfig({ ...validConfig, enabled: false });
+      
+      // Re-enable with same model
+      service.updateConfig({ ...validConfig, enabled: true });
+      
+      // Should still work with preserved model
+      return service.generateTitle('test-id', 'test content').then(result => {
+        // Should not fail with "Model not found: undefined"
+        if (!result.success) {
+          expect(result.error).not.toContain('undefined');
+        }
+      });
+    });
+
+    it('should reject undefined or null model configuration', () => {
+      const invalidConfigs = [
+        { enabled: true, selectedModel: undefined as any, selectedProvider: 'ollama', timeoutSeconds: 30 },
+        { enabled: true, selectedModel: null as any, selectedProvider: 'ollama', timeoutSeconds: 30 },
+      ];
+      
+      invalidConfigs.forEach(config => {
+        service.updateConfig(config);
+        
+        return service.generateTitle('test-id', 'test content').then(result => {
+          expect(result.success).toBe(false);
+          expect(result.error).toMatch(/model/i);
+        });
+      });
+    });
+  });
 });

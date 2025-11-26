@@ -176,3 +176,37 @@ export interface TitleGenerationConfig {
   timeoutSeconds: number;
 }
 
+/**
+ * LLM call settings for unified configuration
+ */
+export interface LLMCallSettings {
+  model: string;
+  timeout: number; // 1-999 seconds
+}
+
+/**
+ * Title generation settings for unified configuration
+ */
+export interface TitleGenerationSettings {
+  enabled: boolean;
+  model: string;
+  timeout: number; // 1-999 seconds
+}
+
+/**
+ * Unified LLM configuration combining LLM calls and title generation
+ */
+export interface UnifiedLLMConfig {
+  provider: LLMProviderType;
+  llmCall: LLMCallSettings;
+  titleGeneration: TitleGenerationSettings;
+}
+
+/**
+ * Validation result for unified LLM configuration
+ */
+export interface UnifiedLLMConfigValidation {
+  valid: boolean;
+  errors: string[];
+}
+

@@ -71,6 +71,14 @@ export const IPC_CHANNELS = {
   LLM_TITLE_CONFIG_GET: 'llm:title:config:get',
   LLM_TITLE_CONFIG_SET: 'llm:title:config:set',
   
+  // Unified LLM configuration (T014-T016)
+  LLM_UNIFIED_CONFIG_GET: 'llm:unified-config:get',
+  LLM_UNIFIED_CONFIG_SAVE: 'llm:unified-config:save',
+  LLM_UNIFIED_CONFIG_VALIDATE: 'llm:unified-config:validate',
+  
+  // Prompt favorite toggle (T017)
+  PROMPT_UPDATE_FAVORITE: 'prompt:update-favorite',
+  
   // LLM 큐 상태
   LLM_GET_QUEUE_STATUS: 'llm:getQueueStatus',
   

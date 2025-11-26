@@ -351,6 +351,21 @@
       "noProvider": "LLM 제공자가 설정되지 않았습니다. 설정에서 구성하세요.",
       "configureProvider": "제공자 구성"
     },
+    "settings": {
+      "title": "LLM 설정",
+      "description": "LLM 호출 및 제목 생성을 위한 제공자 설정",
+      "llmCall": "LLM 호출 설정",
+      "llmModel": "LLM 모델",
+      "llmTimeout": "LLM 타임아웃 (초)",
+      "titleGeneration": "제목 생성 설정",
+      "enableTitle": "자동 제목 생성 활성화",
+      "titleModel": "제목 생성 모델",
+      "titleTimeout": "제목 생성 타임아웃 (초)",
+      "save": "저장",
+      "saving": "저장 중...",
+      "saveSuccess": "설정이 성공적으로 저장되었습니다",
+      "saveFailed": "설정 저장에 실패했습니다"
+    },
     "callExtended": {
       "title": "LLM 호출",
       "callButton": "LLM 호출",

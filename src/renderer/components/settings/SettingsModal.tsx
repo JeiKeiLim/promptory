@@ -11,7 +11,6 @@ import { SearchSettings } from './SearchSettings';
 import { ShortcutSettings } from './ShortcutSettings';
 import { WindowSettings } from './WindowSettings';
 import { LLMSettings } from './LLMSettings';
-import { TitleGenerationSettings } from './TitleGenerationSettings';
 import { useTranslation } from 'react-i18next';
 
 export const SettingsModal: React.FC = () => {
@@ -26,8 +25,7 @@ export const SettingsModal: React.FC = () => {
     { id: 'search', label: t('settings.search'), icon: '🔍' },
     { id: 'shortcuts', label: t('settings.shortcuts'), icon: '⌨️' },
     { id: 'window', label: t('settings.window'), icon: '🖥️' },
-    { id: 'llm', label: t('settings.llm'), icon: '🤖' },
-    { id: 'titleGen', label: t('settings.titleGen') || 'Title Generation', icon: '📝' }
+    { id: 'llm', label: t('settings.llm'), icon: '🤖' }
   ] as const;
 
   const renderTabContent = () => {
@@ -44,8 +42,6 @@ export const SettingsModal: React.FC = () => {
         return <WindowSettings />;
       case 'llm':
         return <LLMSettings />;
-      case 'titleGen':
-        return <TitleGenerationSettings />;
       default:
         return <GeneralSettings />;
     }

@@ -7,6 +7,8 @@ import { usePromptStore } from '@renderer/stores/usePromptStore';
 import { useAppStore } from '@renderer/stores/useAppStore';
 import { toast } from '@renderer/components/common/ToastContainer';
 import { SearchBar } from '@renderer/components/search/SearchBar';
+import { FavoriteStar } from '@renderer/components/common/FavoriteStar';
+import { useDebouncedFavoriteToggle } from '@renderer/hooks/useDebouncedFavoriteToggle';
 import { useTranslation } from 'react-i18next';
 import { highlightText, shouldHighlightTags } from '@renderer/utils/tagHighlighter';
 import { LLMBadge } from '@renderer/components/llm/LLMBadge';
@@ -27,6 +29,11 @@ export const MainContent: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // T108: Use custom debounce hook for favorite toggle
+  const handleFavoriteToggle = useDebouncedFavoriteToggle({
+    delay: 300,
+  });
   
   // 검색이 활성화되어 있으면 검색 결과를, 아니면 필터된 프롬프트를 사용
   const displayPrompts = isSearchActive ? searchResults : getFilteredPrompts();
@@ -224,7 +231,7 @@ export const MainContent: React.FC = () => {
               <div
                 key={prompt.id}
                 onClick={() => handlePromptClick(prompt)}
-                className={`p-3 rounded-lg border cursor-pointer card-hover list-item-enter ${
+                className={`p-3 rounded-lg border cursor-pointer card-hover list-item-enter relative ${
                   selectedPrompt?.id === prompt.id
                     ? 'bg-blue-50 border-blue-300 shadow-md'
                     : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
@@ -233,7 +240,17 @@ export const MainContent: React.FC = () => {
                   animationDelay: `${index * 0.05}s`
                 }}
               >
-                <div className="flex items-start justify-between">
+                {/* T098: Position FavoriteStar in top-right corner */}
+                <div className="absolute top-2 right-2 z-10">
+                  <FavoriteStar
+                    promptId={prompt.id}
+                    path={prompt.path}
+                    isFavorite={prompt.metadata.favorite || false}
+                    onToggle={handleFavoriteToggle}
+                  />
+                </div>
+                
+                <div className="flex items-start justify-between pr-10">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-gray-900 truncate">
@@ -259,9 +276,6 @@ export const MainContent: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {prompt.metadata.favorite && (
-                    <div className="ml-2 text-yellow-500">⭐</div>
-                  )}
                 </div>
               </div>
             ))}
