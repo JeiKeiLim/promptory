@@ -49,7 +49,7 @@ export const LLMResponsePanel: React.FC<LLMResponsePanelProps> = ({ promptId, is
     });
     
     // T054: Listen for title status updates
-    const unsubscribeTitle = window.electronAPI.on('llm:title:status', (event: any) => {
+    const unsubscribeTitle = window.electronAPI.on(IPC_CHANNELS.LLM_TITLE_STATUS, (event: any) => {
       const { responseId, status, title } = event;
       
       if (status === 'pending') {

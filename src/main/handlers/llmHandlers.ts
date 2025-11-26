@@ -77,14 +77,9 @@ export async function initializeLLMHandlers(
   requestQueue = new RequestQueue();
   tokenCounter = new TokenCounter();
   
-  // T034: Initialize TitleGenerationService with default config
-  // Default: enabled, use same model/provider as main provider
-  const titleConfig = {
-    enabled: true,
-    selectedModel: activeProvider?.modelName || 'gemma3:1b',
-    selectedProvider: activeProvider?.providerType || 'ollama',
-    timeoutSeconds: 30
-  };
+  // T034: Initialize TitleGenerationService with saved config from database
+  // Load saved config or use defaults if none exists
+  const titleConfig = await storageService.getTitleGenerationConfig();
   titleService = new TitleGenerationService(titleConfig, storageService);
 
   // Clear any orphaned queue state from unexpected shutdown
@@ -548,13 +543,15 @@ async function processNextRequest(mainWindow: BrowserWindow): Promise<void> {
     responseMetadata.filePath = filePath;
     await storageService.saveResponseMetadata(responseMetadata);
 
-    // T035: Generate title for the response (non-blocking)
-    // This happens in the background after the main response is saved
+    // T035: Generate title for the response (BLOCKING)
+    // Per spec requirement: LLM call #1 → title #1 → LLM call #2 → title #2
+    // Title generation must complete before processing next queued LLM call
     if (titleService) {
-      // Don't await - let it run async so we don't block the queue
-      titleService.generateTitle(responseId, result.content).catch(err => {
+      try {
+        await titleService.generateTitle(responseId, result.content);
+      } catch (err) {
         console.error(`[Title Generation] Failed for response ${responseId}:`, err);
-      });
+      }
     }
 
     // Emit completion event

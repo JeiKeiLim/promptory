@@ -655,6 +655,61 @@ export class LLMStorageService {
     }
   }
 
+  /**
+   * Update markdown file frontmatter with title generation metadata
+   * This method reads the existing markdown file, updates the frontmatter with title fields,
+   * and writes it back
+   */
+  async updateResponseTitle(responseId: string): Promise<void> {
+    // Get response metadata (which should already be updated with title)
+    const metadata = await this.getResponseMetadata(responseId);
+    if (!metadata || !metadata.filePath) {
+      throw new Error(`Response ${responseId} not found or has no file path`);
+    }
+
+    // Validate path
+    this.pathValidator.validatePath(metadata.filePath);
+    
+    const fullPath = path.join(this.resultsPath, metadata.filePath);
+
+    // Read existing file
+    const fileContent = await fs.readFile(fullPath, 'utf-8');
+    
+    // Parse frontmatter and content
+    const { yamlHeader, content } = separateYamlAndContent(fileContent);
+    
+    // Parse YAML to object
+    const frontmatter = yaml.load(yamlHeader) as any;
+    
+    // Update frontmatter with title fields
+    if (metadata.generatedTitle) {
+      frontmatter.generated_title = metadata.generatedTitle;
+    }
+    if (metadata.titleGenerationStatus) {
+      frontmatter.title_generation_status = metadata.titleGenerationStatus;
+    }
+    if (metadata.titleGeneratedAt) {
+      frontmatter.title_generated_at = new Date(metadata.titleGeneratedAt).toISOString();
+    }
+    if (metadata.titleModel) {
+      frontmatter.title_model = metadata.titleModel;
+    }
+
+    // Generate updated frontmatter YAML
+    const updatedYaml = yaml.dump(frontmatter, {
+      indent: 2,
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: false
+    });
+
+    // Reconstruct file with updated frontmatter
+    const updatedContent = `---\n${updatedYaml}---\n\n${content}`;
+    
+    // Write back to file
+    await fs.writeFile(fullPath, updatedContent, 'utf-8');
+  }
+
   // ==================== Title Generation Config ====================
 
   /**

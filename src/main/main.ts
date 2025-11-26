@@ -303,7 +303,7 @@ async function initializeApp(): Promise<void> {
 
     // Show the window after page is loaded
     mainWindow.show();
-    
+
     // 개발 환경에서는 개발자 도구 열기
     if (isDev) {
       mainWindow.webContents.openDevTools();

@@ -39,6 +39,21 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
   const [showResponsePanel, setShowResponsePanel] = useState(false);
   const [selectedResponseForView, setSelectedResponseForView] = useState<{id: string; content: string} | null>(null);
 
+  // Safe markdown rendering helper
+  const renderMarkdown = (content: string): string => {
+    try {
+      if (!content || content.trim().length === 0) {
+        return '<p>No content available</p>';
+      }
+      // marked.parse() is the synchronous API
+      return marked.parse(content) as string;
+    } catch (error) {
+      console.error('Markdown rendering error:', error);
+      // Fallback to plain text with line breaks
+      return `<pre>${content}</pre>`;
+    }
+  };
+
   // Reset panel state when modal closes
   const handleCloseModal = useCallback(() => {
     setShowResponsePanel(false);
@@ -242,10 +257,19 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                   </button>
                 </div>
                 <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-y-auto">
-                  <div 
-                    className="prose prose-sm max-w-none text-gray-800"
-                    dangerouslySetInnerHTML={{ __html: marked(selectedResponseForView.content) }}
-                  />
+                  {selectedResponseForView.content ? (
+                    <div 
+                      className="prose prose-sm max-w-none text-gray-800"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedResponseForView.content) }}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">📄</div>
+                        <p>{t('llm.response.noContent') || 'No content available'}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -331,6 +355,12 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
                     setSelectedResponseForView(null);
                   }}
                   onSelectResponse={(id: string, content: string) => {
+                    console.log('[ParameterInputModal] Response selected:', {
+                      id,
+                      contentLength: content?.length || 0,
+                      hasContent: !!content,
+                      contentPreview: content?.slice(0, 100)
+                    });
                     setSelectedResponseForView({ id, content });
                   }}
                   selectedResponseId={selectedResponseForView?.id || null}

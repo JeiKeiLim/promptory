@@ -62,6 +62,10 @@ export const Sidebar: React.FC = () => {
 
   // 폴더 목록 로드
   const loadFolders = React.useCallback(async () => {
+    if (!window.electronAPI) {
+      console.warn('Not running in Electron environment, skipping folder load');
+      return;
+    }
     try {
       const result = await window.electronAPI.invoke('folder:list');
       if (result.success) {
@@ -99,7 +103,7 @@ export const Sidebar: React.FC = () => {
         <button
           onClick={() => showSettingsModal()}
           className="p-1.5 theme-text-secondary theme-hover rounded-md transition-colors"
-          title={t('settings.title')}
+          title={t('settings.settingsTitle')}
         >
           <Cog6ToothIcon className="w-5 h-5" />
         </button>

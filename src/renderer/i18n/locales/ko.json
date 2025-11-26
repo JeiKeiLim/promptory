@@ -104,8 +104,6 @@
     "noParams": "이 프롬프트에는 파라미터가 없습니다.",
     "copyDirectly": "바로 복사해서 사용하세요!",
     "selectOption": "선택하세요",
-    "copying": "복사 중...",
-    "copyToClipboard": "클립보드에 복사",
     "backToParameters": "파라미터로 돌아가기"
   },
   "parameterEditor": {
@@ -146,16 +144,17 @@
     "clear": "지우기"
   },
   "inputDialog": {
-    "confirm": "확인"
+    "confirm": "확인",
+    "cancel": "취소"
   },
   "settings": {
-    "title": "설정",
     "general": "일반",
     "editor": "에디터",
     "search": "검색",
     "shortcuts": "단축키",
     "window": "윈도우",
     "llm": "LLM 통합",
+    "titleGen": "제목 자동 생성",
     "appName": "애플리케이션 이름",
     "language": "언어",
     "korean": "한국어",
@@ -237,7 +236,22 @@
     "appNameLabel": "앱 이름",
     "version": "버전",
     "platform": "플랫폼",
-    "userAgent": "사용자 에이전트"
+    "userAgent": "사용자 에이전트",
+    "settingsTitle": "설정",
+    "title": {
+      "heading": "자동 제목 생성",
+      "description": "LLM 응답에 대한 설명적인 제목을 자동으로 생성합니다",
+      "enabled": "제목 생성 활성화",
+      "enabledDesc": "모든 응답에 대해 자동으로 제목을 생성합니다",
+      "model": "제목 생성 모델",
+      "modelDesc": "빠른 제목 생성을 위해 가벼운 모델을 권장합니다",
+      "provider": "제공자",
+      "timeout": "타임아웃 (초)",
+      "timeoutDesc": "10초에서 120초 사이",
+      "saved": "제목 생성 설정이 저장되었습니다",
+      "saveError": "설정 저장에 실패했습니다",
+      "loadError": "설정 로드에 실패했습니다"
+    }
   },
   "confirm": {
     "saveChanges": "변경사항 저장",
@@ -264,21 +278,26 @@
     "loadFailed": "파일 로드 중 오류가 발생했습니다",
     "saveFailed": "저장 실패"
   },
-  "inputDialog": {
-    "confirm": "확인",
-    "cancel": "취소"
-  },
   "titleBar": {
     "settings": "설정",
     "minimize": "최소화",
     "maximize": "최대화",
     "close": "닫기"
   },
+  "common": {
+    "save": "변경사항 저장",
+    "saving": "저장 중..."
+  },
   "llm": {
     "call": {
       "callLLM": "LLM 호출",
       "calling": "호출 중...",
       "queued": "LLM 요청이 대기열에 추가되었습니다"
+    },
+    "time": {
+      "justNow": "방금",
+      "minutesAgo": "{{count}}분 전",
+      "hoursAgo": "{{count}}시간 전"
     },
     "queue": {
       "size": "대기열: {{count}}개",

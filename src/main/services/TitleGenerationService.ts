@@ -9,6 +9,7 @@ import type { TitleGenerationConfig, LLMProviderType, LLMResponseMetadata } from
 import type { LLMStorageService } from './LLMStorageService';
 import { OllamaProvider } from './providers/OllamaProvider';
 import { BrowserWindow } from 'electron';
+import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
 
 export class TitleGenerationService {
   private config: TitleGenerationConfig;
@@ -243,6 +244,16 @@ Rules:
         response.titleGenerationStatus = status;
         await this.storageService.saveResponse(response);
         
+        // Try to update markdown file if it exists
+        if (response.filePath) {
+          try {
+            await this.storageService.updateResponseTitle(responseId);
+          } catch (error) {
+            // File might not exist yet, ignore
+            console.debug('[Title Generation] Could not update markdown file for pending status:', error);
+          }
+        }
+        
         // Emit IPC event
         this.notifyTitleStatus({ responseId, status });
       }
@@ -263,6 +274,9 @@ Rules:
         response.titleGeneratedAt = Date.now();
         response.titleModel = model;
         await this.storageService.saveResponse(response);
+        
+        // Update markdown file frontmatter with title
+        await this.storageService.updateResponseTitle(responseId);
         
         // Emit IPC event
         this.notifyTitleStatus({
@@ -287,6 +301,9 @@ Rules:
       if (response) {
         response.titleGenerationStatus = 'failed';
         await this.storageService.saveResponse(response);
+        
+        // Update markdown file frontmatter with failed status
+        await this.storageService.updateResponseTitle(responseId);
         
         // Emit IPC event with error info
         this.notifyTitleStatus({
@@ -314,7 +331,7 @@ Rules:
   }): void {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach(win => {
-      win.webContents.send('llm:title:status', event);
+      win.webContents.send(IPC_CHANNELS.LLM_TITLE_STATUS, event);
     });
   }
 

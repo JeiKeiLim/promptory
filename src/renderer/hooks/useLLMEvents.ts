@@ -57,6 +57,12 @@ export function useLLMEvents() {
   }>({});
 
   useEffect(() => {
+    // Check if running in Electron environment
+    if (!window.electronAPI) {
+      console.warn('[LLM Events] Not running in Electron environment, skipping event listeners');
+      return;
+    }
+
     // Prevent double registration (React 18 Strict Mode can call effects twice)
     if (handlersRegistered.current) {
       console.log('[LLM Events] Handlers already registered, skipping');
@@ -98,6 +104,8 @@ export function useLLMEvents() {
 
     // Cleanup on unmount
     return () => {
+      if (!window.electronAPI) return;
+      
       console.log('[LLM Events] Cleaning up event listeners');
       window.electronAPI.removeAllListeners(IPC_CHANNELS.LLM_QUEUE_UPDATED);
       window.electronAPI.removeAllListeners(IPC_CHANNELS.LLM_REQUEST_PROGRESS);
