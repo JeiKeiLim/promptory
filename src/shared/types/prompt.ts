@@ -75,3 +75,19 @@ export interface SearchResult {
   query: string;
   searchTime: number; // ms
 }
+
+/**
+ * Favorite toggle request for IPC
+ */
+export interface FavoriteToggleRequest {
+  id: string;
+  favorite: boolean;
+}
+
+/**
+ * Favorite toggle response from IPC
+ */
+export interface FavoriteToggleResponse {
+  success: boolean;
+  error?: string;
+}

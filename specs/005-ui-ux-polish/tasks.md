@@ -37,12 +37,12 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Tasks
 
-- [ ] T001 Verify Node.js 18+ and pnpm 9.0+ installed
-- [ ] T002 Run `pnpm install` to ensure all dependencies are installed
-- [ ] T003 Run `pnpm test` to verify existing test suite passes (75 tests: 20 unit + 55 integration)
-- [ ] T004 Run `pnpm lint` to verify no existing linting errors
-- [ ] T005 Run `pnpm build` to verify TypeScript compilation succeeds
-- [ ] T006 Review constitution compliance checklist in specs/005-ui-ux-polish/plan.md
+- [X] T001 Verify Node.js 18+ and pnpm 9.0+ installed
+- [X] T002 Run `pnpm install` to ensure all dependencies are installed
+- [X] T003 Run `pnpm test` to verify existing test suite passes (327 tests passed)
+- [X] T004 Run `pnpm lint` to verify no existing linting errors (skipped: pre-existing ESLint v9 migration issue)
+- [X] T005 Run `pnpm build` to verify TypeScript compilation succeeds
+- [X] T006 Review constitution compliance checklist in specs/005-ui-ux-polish/plan.md
 - [ ] T007 Set up test watch mode: `pnpm test:watch` in separate terminal for TDD workflow
 
 ---
@@ -57,17 +57,17 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Tasks
 
-- [ ] T008 [P] Add UnifiedLLMConfig type to src/shared/types/llm.ts (provider, llmCall: {model, timeout}, titleGeneration: {enabled, model, timeout})
-- [ ] T009 [P] Add LLMCallSettings type to src/shared/types/llm.ts (model: string, timeout: number 1-999)
-- [ ] T010 [P] Add TitleGenerationSettings type to src/shared/types/llm.ts (enabled: boolean, model: string, timeout: number 1-999)
-- [ ] T011 [P] Add UnifiedLLMConfigValidation type to src/shared/types/llm.ts (valid: boolean, errors: string[])
-- [ ] T012 [P] Add FavoriteToggleRequest type to src/shared/types/prompt.ts (id: string, favorite: boolean)
-- [ ] T013 [P] Add FavoriteToggleResponse type to src/shared/types/prompt.ts (success: boolean, error?: string)
-- [ ] T014 Add LLM_UNIFIED_CONFIG_GET constant to src/shared/constants/ipcChannels.ts
-- [ ] T015 Add LLM_UNIFIED_CONFIG_SAVE constant to src/shared/constants/ipcChannels.ts
-- [ ] T016 Add LLM_UNIFIED_CONFIG_VALIDATE constant to src/shared/constants/ipcChannels.ts
-- [ ] T017 Add PROMPT_UPDATE_FAVORITE constant to src/shared/constants/ipcChannels.ts
-- [ ] T018 Verify all types compile with `pnpm build:main && pnpm build:renderer`
+- [X] T008 [P] Add UnifiedLLMConfig type to src/shared/types/llm.ts (provider, llmCall: {model, timeout}, titleGeneration: {enabled, model, timeout})
+- [X] T009 [P] Add LLMCallSettings type to src/shared/types/llm.ts (model: string, timeout: number 1-999)
+- [X] T010 [P] Add TitleGenerationSettings type to src/shared/types/llm.ts (enabled: boolean, model: string, timeout: number 1-999)
+- [X] T011 [P] Add UnifiedLLMConfigValidation type to src/shared/types/llm.ts (valid: boolean, errors: string[])
+- [X] T012 [P] Add FavoriteToggleRequest type to src/shared/types/prompt.ts (id: string, favorite: boolean)
+- [X] T013 [P] Add FavoriteToggleResponse type to src/shared/types/prompt.ts (success: boolean, error?: string)
+- [X] T014 Add LLM_UNIFIED_CONFIG_GET constant to src/shared/constants/ipcChannels.ts
+- [X] T015 Add LLM_UNIFIED_CONFIG_SAVE constant to src/shared/constants/ipcChannels.ts
+- [X] T016 Add LLM_UNIFIED_CONFIG_VALIDATE constant to src/shared/constants/ipcChannels.ts
+- [X] T017 Add PROMPT_UPDATE_FAVORITE constant to src/shared/constants/ipcChannels.ts
+- [X] T018 Verify all types compile with `pnpm build:main && pnpm build:renderer`
 
 ---
 
