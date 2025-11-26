@@ -240,9 +240,9 @@ export function registerUnifiedLLMConfigHandlers() {
       if (storageService && titleService) {
         const titleConfig: TitleGenerationConfig = {
           enabled: config.titleGeneration.enabled,
-          model: config.titleGeneration.model,
+          selectedModel: config.titleGeneration.model,
           timeoutSeconds: config.titleGeneration.timeout,
-          provider: config.provider
+          selectedProvider: config.provider
         };
         
         await storageService.updateTitleGenerationConfig(titleConfig);
