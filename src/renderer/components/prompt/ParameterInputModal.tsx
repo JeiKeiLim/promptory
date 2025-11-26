@@ -399,12 +399,7 @@ export const ParameterInputModal: React.FC<ParameterInputModalProps> = ({
               )}
             </div>
             
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              {t('confirm.cancel')}
-            </button>
+            {/* T133: Cancel button removed - X icon, ESC, and backdrop click handle modal closing */}
             
             {activeProvider && (
               <>

@@ -239,7 +239,7 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Implementation (GREEN Phase - 15 minutes)
 
-- [ ] T117 [US3] Add `px-4` class to shortcut list container div in src/renderer/components/settings/ShortcutSettings.tsx
+- [X] T117 [US3] Add `px-4` class to shortcut list container div in src/renderer/components/settings/ShortcutSettings.tsx
 - [ ] T118 [US3] Run test: `pnpm test tests/unit/renderer/components/settings/ShortcutSettings.test.tsx` and verify PASS (GREEN)
 
 ### Manual Verification (30 minutes)
@@ -275,11 +275,11 @@ Tasks are organized by user story to enable independent implementation and testi
 
 ### Implementation (GREEN Phase - 1 hour)
 
-- [ ] T132 [US4] Locate Cancel button in src/renderer/components/prompt/ParameterInputModal.tsx footer
-- [ ] T133 [US4] Remove Cancel button element from modal footer in ParameterInputModal.tsx
-- [ ] T134 [US4] Simplify footer markup if now empty (remove wrapping div if only contained Cancel button) in ParameterInputModal.tsx
-- [ ] T135 [US4] Verify X icon still present in modal header (no changes needed to header)
-- [ ] T136 [US4] Verify HeadlessUI Dialog component still handles ESC key and backdrop click (no changes needed)
+- [X] T132 [US4] Locate Cancel button in src/renderer/components/prompt/ParameterInputModal.tsx footer
+- [X] T133 [US4] Remove Cancel button element from modal footer in ParameterInputModal.tsx
+- [X] T134 [US4] Simplify footer markup if now empty (remove wrapping div if only contained Cancel button) in ParameterInputModal.tsx
+- [X] T135 [US4] Verify X icon still present in modal header (no changes needed to header)
+- [X] T136 [US4] Verify HeadlessUI Dialog component still handles ESC key and backdrop click (no changes needed)
 - [ ] T137 [US4] Run tests: `pnpm test tests/unit/renderer/components/prompt/ParameterInputModal.test.tsx` and verify all tests PASS (GREEN)
 
 ### Refactor & Manual Verification (REFACTOR Phase - 30 minutes)
