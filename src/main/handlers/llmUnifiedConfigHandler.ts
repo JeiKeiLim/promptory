@@ -12,7 +12,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { app } from 'electron';
 import { IPC_CHANNELS } from '@shared/constants/ipcChannels';
-import { UnifiedLLMConfig, UnifiedLLMConfigValidation } from '@shared/types/llm';
+import { UnifiedLLMConfig, UnifiedLLMConfigValidation, TitleGenerationConfig } from '@shared/types/llm';
+import { getStorageService, getTitleService } from './llmHandlers';
 
 const CONFIG_DIR = path.join(app.getPath('userData'), '.config');
 const UNIFIED_CONFIG_PATH = path.join(CONFIG_DIR, 'llm-unified.json');
@@ -230,6 +231,24 @@ export function registerUnifiedLLMConfigHandlers() {
       }
 
       await saveUnifiedConfig(config);
+      
+      // Also update the database with title generation config
+      // This ensures TitleGenerationService gets the updated config
+      const storageService = getStorageService();
+      const titleService = getTitleService();
+      
+      if (storageService && titleService) {
+        const titleConfig: TitleGenerationConfig = {
+          enabled: config.titleGeneration.enabled,
+          model: config.titleGeneration.model,
+          timeoutSeconds: config.titleGeneration.timeout,
+          provider: config.provider
+        };
+        
+        await storageService.updateTitleGenerationConfig(titleConfig);
+        titleService.updateConfig(titleConfig);
+      }
+      
       return { success: true };
     } catch (error) {
       return {

@@ -55,6 +55,15 @@ let requestQueue: RequestQueue;
 let tokenCounter: TokenCounter;
 let titleService: TitleGenerationService;
 
+// Export getters for services (for use by other handlers)
+export function getStorageService(): LLMStorageService {
+  return storageService;
+}
+
+export function getTitleService(): TitleGenerationService {
+  return titleService;
+}
+
 // State
 let activeProvider: LLMProviderConfig | null = null;
 let currentRequest: LLMRequest | null = null;
